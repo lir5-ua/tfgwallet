@@ -21,8 +21,9 @@
     </ul>
 
     <hr>
-
-    <h2>Historial médico</h2>
+    <h2>
+        <a href= "{{ route('mascotas.historial.index',$mascota->id) }}">Historial médico</a>
+        </h2>
     @if($mascota->historial->isEmpty())
         <p>Esta mascota no tiene historial médico registrado.</p>
     @else
@@ -36,6 +37,19 @@
             @endforeach
         </ul>
     @endif
+    <hr>
+    <h2 class="text-xl font-bold mb-2">Próximos recordatorios</h2>
+        <a href="{{ route('mascotas.recordatorios.create',$mascota->id) }}">Añadir nuevo recordatorio</a>
+
+    <ul>
+    @foreach ($recordatorios as $recordatorio)
+        <li class="mb-2">
+            <strong>{{ $recordatorio->titulo }}</strong> - {{ \Carbon\Carbon::parse($recordatorio->fecha)->format('d/m/Y') }}
+            <p class="text-sm text-gray-600">{{ $recordatorio->descripcion }}</p>
+        </li>
+    @endforeach
+    </ul>
+<hr>
 
     <a href="{{ route('mascotas.index') }}">← Volver al listado</a>
 </div>

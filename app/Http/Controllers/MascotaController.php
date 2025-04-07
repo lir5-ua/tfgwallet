@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Mascota;
 use App\Models\User;
+use App\Models\Recordatorio;
+
 use App\Enums\Especie;
 use App\Enums\Sexo;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Carbon\Carbon;
 class MascotaController extends Controller
 {
     // obliga a que solo usuarios autenticados puedan acceder a los métodos del controlador.
@@ -15,35 +18,74 @@ class MascotaController extends Controller
         {
             $this->middleware('auth');
         }
-    public function index(Request $request)
+    public function index(Request $request, User $usuario = null)
     {
+$hoy = Carbon::today();
+
+    // Recordatorios para hoy del usuario autenticado
+    $recordatoriosHoy = Recordatorio::whereDate('fecha', $hoy)
+        ->whereHas('mascota', function ($q) use ($usuario) {
+            if (auth()->user()->is_admin && $usuario) {
+                $q->where('user_id', $usuario->id);
+            } else {
+                $q->where('user_id', auth()->id());
+            }
+        })->where('realizado',false)
+        ->get();
+
         $query = Mascota::with('usuario');
-        if(!auth()->user()->is_admin){
-        $query->where('user_id', auth()->id());
+        $user = auth()->user();
+
+        // Usuario normal → ve solo sus mascotas
+        if (!$user->is_admin) {
+            $query->where('user_id', $user->id);
         }
-        $orden = $request->get('ordenar', 'id'); // columna por defecto
-        $direccion = $request->get('direccion', 'asc'); // dirección por defecto
+        // Admin viendo mascotas de un usuario concreto
+        elseif ($usuario !== null) {
+            $query->where('user_id', $usuario->id);
+        }
+        // Admin sin parámetro → ve todas
 
-        // Validar columnas permitidas para evitar SQL injection
-            $columnasPermitidas = ['id', 'nombre', 'especie', 'sexo'];
-            if (!in_array($orden, $columnasPermitidas)) {
-                $orden = 'id';
-            }
-            if ($request->has('busqueda') && $request->busqueda !== '') {
-                $query->where('nombre', 'like', '%' . $request->busqueda . '%');
-            }
+        // Ordenar y buscar
+        $orden = $request->get('ordenar', 'id');
+        $direccion = $request->get('direccion', 'asc');
 
-            $mascotas = $query->orderBy($orden,$direccion)->paginate(10)
-            ->appends($request->all()); // mantiene los parámetros en los links de paginación;
+        $columnasPermitidas = ['id', 'nombre', 'especie', 'sexo'];
+        if (!in_array($orden, $columnasPermitidas)) {
+            $orden = 'id';
+        }
 
-            return view('mascotas.index', compact('mascotas'));
+        if ($request->has('busqueda') && $request->busqueda !== '') {
+            $query->where('nombre', 'like', '%' . $request->busqueda . '%');
+        }
+
+        $mascotas = $query->orderBy($orden, $direccion)
+                          ->paginate(10)
+                          ->appends($request->all());
+$titulo = '';
+
+// Usuario normal
+if (!$user->is_admin) {
+    $titulo = 'Mis mascotas';
+}
+// Admin viendo mascotas de un usuario
+elseif ($usuario !== null) {
+    $titulo = 'Mascotas de ' . $usuario->name;
+}
+// Admin sin filtro → todas las mascotas
+else {
+    $titulo = 'Todas las mascotas';
+}
+        return view('mascotas.index', compact('mascotas','titulo','recordatoriosHoy'));
     }
 
     public function create()
     {
-        $especies = Especie::cases();
         $sexos = Sexo::cases();
-        return view('mascotas.create', compact('especies','sexos'));
+        $razasPorEspecie = Especie::todasLasRazasPorEspecie();
+        $especies = Especie::labels();
+
+        return view('mascotas.create', compact('sexos', 'razasPorEspecie', 'especies'));
     }
 
     public function store(Request $request)
@@ -90,10 +132,11 @@ class MascotaController extends Controller
     public function edit(Mascota $mascota)
     {
 
-        $especies = Especie::cases();
-        $sexos = Sexo::cases();
+         $sexos = Sexo::cases();
+                $razasPorEspecie = Especie::todasLasRazasPorEspecie();
+                $especies = Especie::labels();
           $nombreUsuario = $mascota->usuario->name;
-        return view('mascotas.edit', compact('mascota', 'especies','nombreUsuario','sexos'));
+        return view('mascotas.edit', compact('mascota', 'especies','nombreUsuario','razasPorEspecie','sexos'));
     }
 
     public function update(Request $request, Mascota $mascota)
@@ -135,9 +178,14 @@ class MascotaController extends Controller
     }
 public function show(Mascota $mascota)
 {
-    $mascota->load('usuario', 'historial'); // cargar relaciones
 
-    return view('mascotas.show', compact('mascota'));
+            $recordatorios = $mascota->recordatorios()
+                ->where('realizado', false)
+                ->whereDate('fecha', '>=', Carbon::today())
+                ->orderBy('fecha')
+                ->get();
+    $mascota->load('usuario', 'historial'); // cargar relaciones
+    return view('mascotas.show', compact('mascota','recordatorios'));
 }
 
 

@@ -9,7 +9,13 @@
     @endif
 
     <a href="{{ route('usuarios.create') }}">➕ Crear nuevo usuario</a><br><br>
-
+<form method="GET" action="{{ route('usuarios.index') }}" class="mb-4">
+    <input type="text" name="busqueda" placeholder="Buscar usuario por nombre" value="{{ request('busqueda') }}"
+        class="border border-gray-300 rounded px-3 py-1 mr-2" />
+    <button type="submit" class="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600">
+        Buscar
+    </button>
+</form>
     <table border="1" cellpadding="8" cellspacing="0">
         <thead>
             <tr>
@@ -21,7 +27,12 @@
         <tbody>
             @foreach ($usuarios as $usuario)
                 <tr>
-                    <td>{{ $usuario->name }}</td>
+                    <td>
+                        <a href="{{ route('usuarios.mascotas.index', ['usuario' => $usuario->id]) }}">
+                            {{ $usuario->name }}
+                        </a>
+                    </td>
+
                     <td>{{ $usuario->email }}</td>
                     <td>
                         <a href="{{ route('usuarios.edit', $usuario) }}">✏️ Editar</a> |

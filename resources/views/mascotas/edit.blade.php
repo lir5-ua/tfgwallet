@@ -19,8 +19,8 @@
         @csrf
         @method('PUT')
 
-        <label for="imagen">Foto:</label>
-        <input type="file" name="imagen" id="imagen" accept="image/*">
+        <label for="imagen">Foto:</label><br>
+        <input type="file" name="imagen" id="imagen" accept="image/*"><br><br>
 
         <label for="nombre">Nombre:</label><br>
         <input type="text" name="nombre" value="{{ old('nombre', $mascota->nombre) }}"><br><br>
@@ -29,17 +29,22 @@
         <input type="text" name="nombre_usuario" value="{{ old('nombre_usuario', $mascota->usuario->name) }}"><br><br>
 
         <label for="especie">Especie:</label><br>
-        <select name="especie" id="especie" onchange="actualizarRazas()">
-            <option value="">-- Selecciona especie --</option>
-            @foreach ($especies as $especie)
-                <option value="{{ $especie->value }}" @selected(old('especie', $mascota->especie->value) === $especie->value)>
-                    {{ ucfirst($especie->value) }}
-                </option>
-            @endforeach
-        </select><br><br>
+      <select id="especie" name="especie" onchange="actualizarRazas()">
+          <option value="" {{ old('especie', $mascota->especie->value ?? null) ? '' : 'selected' }}>
+              -- Selecciona especie --
+          </option>
+
+          @foreach ($especies as $especie)
+              <option value="{{ $especie['value'] }}"
+                  {{ old('especie', $mascota->especie->value ?? null) === $especie['value'] ? 'selected' : '' }}>
+                  {{ $especie['label'] }}
+              </option>
+          @endforeach
+      </select><br><br>
+
 
         <label for="raza">Raza:</label><br>
-        <select name="raza" id="raza">
+        <select id="raza" name="raza">
             <option value="">-- Selecciona raza --</option>
         </select><br><br>
 
@@ -67,18 +72,11 @@
 </div>
 
 <script>
-    const razasPorEspecie = {
-        perro: ['Labrador', 'Golden Retriever', 'Bulldog'],
-        gato: ['Siamés', 'Persa', 'Maine Coon'],
-        ave: ['Canario', 'Periquito'],
-        pez: ['Betta', 'Guppy']
-    };
+    const razasPorEspecie = @json($razasPorEspecie);
 
     function actualizarRazas() {
         const especie = document.getElementById('especie').value;
         const razaSelect = document.getElementById('raza');
-        const razaActual = "{{ old('raza', $mascota->raza) }}";
-
         razaSelect.innerHTML = '<option value="">-- Selecciona raza --</option>';
 
         if (especie && razasPorEspecie[especie]) {
@@ -86,15 +84,23 @@
                 const option = document.createElement('option');
                 option.value = raza;
                 option.textContent = raza;
-                if (raza === razaActual) {
+
+                // Aquí marcamos como seleccionada si coincide
+                if (raza === razaSeleccionada) {
                     option.selected = true;
                 }
+
                 razaSelect.appendChild(option);
             });
         }
     }
 
-    // Cargar razas al cargar la página
-    document.addEventListener("DOMContentLoaded", actualizarRazas);
+    // Valor actual para el caso de edición
+    const razaSeleccionada = "{{ old('raza', $mascota->raza ?? '') }}";
+
+    document.addEventListener('DOMContentLoaded', function () {
+        actualizarRazas();
+    });
 </script>
+
 @endsection

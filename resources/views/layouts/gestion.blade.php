@@ -20,8 +20,15 @@
     {{-- Header específico para sección de gestión --}}
     <header style="background-color: #f8f9fa; padding: 1rem; border-bottom: 1px solid #ccc;">
         <nav style="display: flex; gap: 2rem;">
-            <a href="{{ route('usuarios.index') }}">Usuarios</a>
+            @auth
+                @if (auth()->user()->is_admin)
+                    <a href="{{ route('usuarios.index') }}">Usuarios</a>
+                @endif
             <a href="{{ route('mascotas.index') }}">Mascotas</a>
+            @if (!auth()->user()->is_admin)
+                    <a href="{{ route('recordatorios.index') }}">Recordatorios</a>
+                @endif
+            @endauth
 
         </nav>
 

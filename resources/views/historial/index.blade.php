@@ -5,7 +5,8 @@
 <div class="container">
     <h2>Historial médico de {{ $mascota->nombre }}</h2>
 
-    @if (session('success'))
+    @if (session('success'
+    ))
         <div style="color: green;">{{ session('success') }}</div>
     @endif
 

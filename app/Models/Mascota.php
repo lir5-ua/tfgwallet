@@ -31,4 +31,9 @@ class Mascota extends Model
         {
             return $this->hasMany(HistorialMedico::class, 'mascota_id');
         }
+    public function recordatorios()
+    {
+        return $this->hasMany(Recordatorio::class);
+    }
+
 }

@@ -11,9 +11,13 @@ class UserController extends Controller
         {
             $this->middleware('auth');
         }
-    public function index()
+    public function index(Request $request)
     {
-        $usuarios = User::paginate(10);
+       $query = User::query();
+    if ($request->has('busqueda') && $request->busqueda !== '') {
+            $query->where('name', 'like', '%' . $request->busqueda . '%');
+        }
+        $usuarios = $query->paginate(10)->appends($request->all());
         return view('usuarios.index', compact('usuarios'));
     }
 

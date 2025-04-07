@@ -1,9 +1,29 @@
 
 @extends('layouts.gestion')
 
+@if (isset($recordatoriosHoy) && $recordatoriosHoy->isNotEmpty())
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
+        <p class="font-bold">¡Tienes recordatorios para hoy!</p>
+        <ul class="list-disc pl-5 mt-2">
+           @foreach ($recordatoriosHoy as $recordatorio)
+             <li>  <a href="{{ route('recordatorios.show', $recordatorio) }}" class="block text-blue-600 hover:underline">
+                   {{ $recordatorio->mascota->nombre }}: {{ $recordatorio->titulo }}
+               </a>
+                    <form action="{{ route('recordatorios.visto', $recordatorio) }}" method="POST" class="inline">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="text-blue-600 hover:underline">👁️ Visto</button>
+                    </form>
+                            </li>
+           @endforeach
+
+        </ul>
+    </div>
+@endif
+
 @section('content')
 <div class="container">
-    <h1>Mis Mascotas</h1>
+    <h1 class="text-2xl font-bold">{{ $titulo }}</h1>
 
     @if(session('success'))
         <div style="color: green;">{{ session('success') }}</div>

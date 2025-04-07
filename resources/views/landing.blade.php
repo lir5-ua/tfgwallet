@@ -45,6 +45,9 @@
             <li>✅ Conectar con clínicas recomendadas</li>
         </ul>
     </section>
+<div class="bg-red-500 text-black p-4">
+    Tailwind funciona 🎉
+</div>
 
     <footer style="text-align: center; padding: 20px; background-color: #f3f3f3;">
         &copy; {{ date('Y') }} PetWallet. Todos los derechos reservados.
