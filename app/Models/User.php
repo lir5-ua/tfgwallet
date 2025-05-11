@@ -18,11 +18,13 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'foto',
         'name',
         'email',
         'password',
         'is_admin',
         'password',
+        'ultima_conexion',
     ];
 
     /**
@@ -45,6 +47,12 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'ultima_conexion' => 'datetime',
         ];
     }
+    public function mascotas()
+    {
+        return $this->hasMany(Mascota::class);
+    }
+
 }

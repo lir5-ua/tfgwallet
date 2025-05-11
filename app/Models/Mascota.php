@@ -36,4 +36,6 @@ class Mascota extends Model
         return $this->hasMany(Recordatorio::class);
     }
 
+
+
 }

@@ -5,9 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Mascota;
 use App\Models\HistorialMedico;
 use Illuminate\Http\Request;
+use App\Enums\TipoHistorial;
 
 class HistorialMedicoController extends Controller
 {
+
+    protected $casts = [
+        'tipo' => TipoHistorial::class,
+    ];
+
 
     /**
      * Display a listing of the resource.
@@ -16,7 +22,9 @@ class HistorialMedicoController extends Controller
         {
 
             $historiales = $mascota->historial()->get();
-            return view('historial.index', compact('mascota', 'historiales'));
+            $usuario = $mascota->user; // relación Mascota belongsTo User
+
+            return view('historial.index', compact('mascota', 'historiales', 'usuario'));
         }
 
     /**
@@ -49,6 +57,11 @@ class HistorialMedicoController extends Controller
      */
     public function show(Mascota $mascota, HistorialMedico $historial)
         {
+            // Evitar sobrescribir si vienes de editar o crear
+            if (!str_contains(url()->previous(), 'historial') && !str_contains(url()->previous(), 'edit')) {
+                session(['return_to_after_update' => url()->previous()]);
+            }
+
             return view('historial.show', compact('mascota', 'historial'));
         }
 
@@ -57,6 +70,7 @@ class HistorialMedicoController extends Controller
      */
     public function edit(Mascota $mascota, HistorialMedico $historial)
         {
+            session(['return_to_after_update' => url()->previous()]);
             return view('historial.edit', compact('mascota', 'historial'));
         }
 
@@ -84,6 +98,7 @@ class HistorialMedicoController extends Controller
      public function destroy(Mascota $mascota, HistorialMedico $historial)
         {
             $historial->delete();
-            return redirect()->route('mascotas.historial.index', $mascota)->with('success', 'Entrada eliminada');
+            return redirect()->back()->with('success', 'Entrada historial eliminada');
+
         }
 }

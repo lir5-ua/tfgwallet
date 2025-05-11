@@ -34,6 +34,9 @@
     </form>
 
     <br>
-    <a href="{{ route('mascotas.historial.index', $mascota) }}">← Volver al historial</a>
+    <a href="{{ session('return_to_after_update', route('usuarios.show', auth()->user())) }}"
+       class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+        Volver
+    </a>
 </div>
 @endsection

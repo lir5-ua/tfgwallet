@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>PetWallet - Tu cartilla digital de mascotas</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    @vite('resources/css/app.css') {{-- Solo si usas Tailwind con Vite --}}
+    @vite('resources/js/app.js')
     <style>
         body {
             font-family: sans-serif;
@@ -35,6 +35,10 @@
         <a href="{{ url('/login') }}" class="btn">Empezar ahora</a>
 
     </div>
+
+        <div class="bg-blue-500 text-white p-4 mt-4 rounded">
+            Si ves esto en azul con texto blanco, Tailwind está funcionando 🎉
+        </div>
 
     <section style="padding: 40px; text-align: center;">
         <h2>🐶 ¿Qué puedes hacer?</h2>

@@ -14,9 +14,12 @@
         </div>
     @endif
 
-    <form action="{{ route('usuarios.update', $usuario) }}" method="POST">
+    <form action="{{ route('usuarios.update', $usuario) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
+
+        <label for="imagen">Foto:</label><br>
+        <input type="file" name="foto" id="foto" accept="image/*"><br><br>
 
         <label>Nombre:</label><br>
         <input type="text" name="name" value="{{ old('name', $usuario->name) }}"><br><br>
@@ -30,10 +33,13 @@
         <label>Confirmar nueva contraseña:</label><br>
         <input type="password" name="password_confirmation"><br><br>
 
+        <label>Es administrador:</label><br>
+                <input type="checkbox" name="esAdmin" {{ $usuario->is_admin ? 'checked' : '' }}><br><br>
+
         <button type="submit">💾 Guardar cambios</button>
     </form>
 
     <br>
-    <a href="{{ route('usuarios.index') }}">← Volver a usuarios</a>
+    <a href="{{ url()->previous() }}" class="btn btn-secondary">Volver</a>
 </div>
 @endsection

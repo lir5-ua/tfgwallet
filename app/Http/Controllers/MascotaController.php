@@ -20,64 +20,78 @@ class MascotaController extends Controller
         }
     public function index(Request $request, User $usuario = null)
     {
-$hoy = Carbon::today();
-
-    // Recordatorios para hoy del usuario autenticado
-    $recordatoriosHoy = Recordatorio::whereDate('fecha', $hoy)
-        ->whereHas('mascota', function ($q) use ($usuario) {
-            if (auth()->user()->is_admin && $usuario) {
-                $q->where('user_id', $usuario->id);
-            } else {
-                $q->where('user_id', auth()->id());
-            }
-        })->where('realizado',false)
-        ->get();
-
-        $query = Mascota::with('usuario');
+        $sexos = Sexo::cases();
+        $razasPorEspecie = Especie::todasLasRazasPorEspecie();
+        $especies = Especie::labels();
+        $hoy = Carbon::today();
         $user = auth()->user();
 
-        // Usuario normal → ve solo sus mascotas
+        // 🔔 RECORDATORIOS
+        $hoy = now()->toDateString();
+        $manana = now()->addDay()->toDateString();
+        $pasado = now()->addDays(2)->toDateString();
+
+        $recordatorios = Recordatorio::whereIn('fecha', [$hoy, $manana, $pasado])
+            ->whereHas('mascota', function ($q) use ($usuario, $user) {
+                if ($user->is_admin && $usuario) {
+                    $q->where('user_id', $usuario->id);
+                } else {
+                    $q->where('user_id', $user->id);
+                }
+            })
+            ->where('realizado', false)
+            ->with('mascota') // Por si quieres mostrar datos de la mascota en la vista
+            ->get();
+
+        // 🐶 CONSULTA BASE
+        $query = Mascota::with('usuario');
+
+        // 👤 FILTRAR POR USUARIO
         if (!$user->is_admin) {
             $query->where('user_id', $user->id);
-        }
-        // Admin viendo mascotas de un usuario concreto
-        elseif ($usuario !== null) {
+        } elseif ($usuario !== null) {
             $query->where('user_id', $usuario->id);
         }
-        // Admin sin parámetro → ve todas
 
-        // Ordenar y buscar
+        // 🔍 FILTROS DE BUSQUEDA
+        if ($request->filled('busqueda')) {
+            $query->where('nombre', 'like', '%' . $request->busqueda . '%');
+        }
+
+        if ($request->filled('especie')) {
+            $query->where('especie', $request->especie);
+        }
+
+        if ($request->filled('raza')) {
+            $query->where('raza', $request->raza);
+        }
+
+        if ($request->filled('sexo')) {
+            $query->where('sexo', $request->sexo);
+        }
+
+        // 📊 ORDENACIÓN SEGURA
         $orden = $request->get('ordenar', 'id');
         $direccion = $request->get('direccion', 'asc');
-
         $columnasPermitidas = ['id', 'nombre', 'especie', 'sexo'];
         if (!in_array($orden, $columnasPermitidas)) {
             $orden = 'id';
         }
 
-        if ($request->has('busqueda') && $request->busqueda !== '') {
-            $query->where('nombre', 'like', '%' . $request->busqueda . '%');
-        }
-
+        // 📄 PAGINACIÓN
         $mascotas = $query->orderBy($orden, $direccion)
-                          ->paginate(10)
-                          ->appends($request->all());
-$titulo = '';
+            ->paginate(10)
+            ->appends($request->all());
 
-// Usuario normal
-if (!$user->is_admin) {
-    $titulo = 'Mis mascotas';
-}
-// Admin viendo mascotas de un usuario
-elseif ($usuario !== null) {
-    $titulo = 'Mascotas de ' . $usuario->name;
-}
-// Admin sin filtro → todas las mascotas
-else {
-    $titulo = 'Todas las mascotas';
-}
-        return view('mascotas.index', compact('mascotas','titulo','recordatoriosHoy'));
+        // 🏷️ TÍTULO PERSONALIZADO
+        $titulo = match (true) {
+            !$user->is_admin => 'Mis mascotas',
+            $usuario !== null => 'Mascotas de ' . $usuario->name,
+            default => 'Todas las mascotas',
+        };
+        return view('mascotas.index', compact('especies','razasPorEspecie','sexos','mascotas', 'titulo', 'recordatorios','hoy','manana','pasado'));
     }
+
 
     public function create()
     {
@@ -85,8 +99,19 @@ else {
         $razasPorEspecie = Especie::todasLasRazasPorEspecie();
         $especies = Especie::labels();
 
-        return view('mascotas.create', compact('sexos', 'razasPorEspecie', 'especies'));
+        return view('mascotas.create', [
+            'sexos' => $sexos,
+            'razasPorEspecie' => $razasPorEspecie,
+            'especies' => $especies,
+            'mascota' => null, // importante para condicionales en la vista
+            'nombreUsuario' => null,
+        ]);
     }
+    public function recordatorios()
+    {
+        return $this->hasMany(Recordatorio::class);
+    }
+
 
     public function store(Request $request)
     {
@@ -99,6 +124,7 @@ else {
             'sexo' => 'nullable|string',
             'fecha_nacimiento' => 'nullable|date',
             'notas' => 'nullable|string',
+            'condiciones' => 'accepted',
         ]);
 
         $sexoInput = $request->input('sexo');
@@ -131,12 +157,18 @@ else {
 
     public function edit(Mascota $mascota)
     {
+        $sexos = Sexo::cases();
+        $razasPorEspecie = Especie::todasLasRazasPorEspecie();
+        $especies = Especie::labels();
+        $nombreUsuario = $mascota->usuario->name;
 
-         $sexos = Sexo::cases();
-                $razasPorEspecie = Especie::todasLasRazasPorEspecie();
-                $especies = Especie::labels();
-          $nombreUsuario = $mascota->usuario->name;
-        return view('mascotas.edit', compact('mascota', 'especies','nombreUsuario','razasPorEspecie','sexos'));
+        return view('mascotas.create', [
+            'mascota' => $mascota,
+            'especies' => $especies,
+            'nombreUsuario' => $nombreUsuario,
+            'razasPorEspecie' => $razasPorEspecie,
+            'sexos' => $sexos,
+        ]);
     }
 
     public function update(Request $request, Mascota $mascota)
@@ -144,7 +176,6 @@ else {
         $request->validate([
             'nombre' => 'required|string|max:255',
             'especie' => 'required|string',
-            'nombre_usuario' => 'required|string|exists:users,name',
             'raza' => 'nullable|string|max:255',
             'sexo' => 'nullable|string',
               'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -160,7 +191,6 @@ else {
         $mascota->update([
             'nombre' => $request->nombre,
             'especie' => \App\Enums\Especie::from($request->especie),
-            'user_id' => $usuario->id,
             'raza' => $request->raza,
             'sexo' => $request->sexo,
             'imagen' => $rutaImagen,
@@ -185,6 +215,10 @@ public function show(Mascota $mascota)
                 ->orderBy('fecha')
                 ->get();
     $mascota->load('usuario', 'historial'); // cargar relaciones
+    session(['return_to_after_update' => url()->current()]);
+
+
+
     return view('mascotas.show', compact('mascota','recordatorios'));
 }
 
