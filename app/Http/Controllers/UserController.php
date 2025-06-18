@@ -58,6 +58,7 @@ public function show(User $usuario)
         $query->where('user_id', $usuario->id);
     })
         ->where('fecha', '>=', now()) // solo futuros
+        ->where('realizado', false) // solo pendientes
         ->orderBy('fecha')
         ->limit(5)
         ->get();

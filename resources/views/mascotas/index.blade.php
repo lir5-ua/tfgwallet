@@ -8,20 +8,17 @@
 @section('content')
 @if (isset($recordatorios) && $recordatorios->isNotEmpty())
 @foreach (['hoy' => $hoy, 'mañana' => $manana, 'pasado' => $pasado] as $nombre => $fecha)
+@php
+$items = $recordatorios->filter(function ($rec) use ($fecha) {
+    return \Carbon\Carbon::parse($rec->fecha)->toDateString() === $fecha;
+});
+@endphp
+
+@if ($items->isNotEmpty())
 <h2 class="mt-6 text-xl font-bold">
     Recordatorios de {{ $nombre }}
 </h2>
 
-@php
-
-$items = $recordatorios->filter(function ($rec) use ($fecha) {
-return \Carbon\Carbon::parse($rec->fecha)->toDateString() === $fecha;
-});
-@endphp
-
-@if ($items->isEmpty())
-<p class="text-gray-400">No hay recordatorios.</p>
-@else
 @foreach ($items as $recordatorio)
 <div class="p-4 my-2 rounded-lg
                     {{ $nombre === 'hoy' ? 'bg-lime-200 text-lime-600' : ($nombre === 'mañana' ? 'bg-yellow-100' : 'bg-green-100') }}">
@@ -178,7 +175,7 @@ return \Carbon\Carbon::parse($rec->fecha)->toDateString() === $fecha;
                                 <div class="flex px-2 py-1">
                                     <div>
                                         <img
-                                            src="{{ $mascota->imagen ? asset('storage/' . $mascota->imagen) : asset('storage/default/defaultPet.jpg') }}"
+                                            src="{{ asset('storage/' . $mascota->imagen) }}"
                                             class="inline-flex items-center justify-center mr-4 text-sm text-white h-9 w-9 max-w-none rounded-xl"
                                             alt="{{ $mascota->nombre }}">
                                     </div>
@@ -238,7 +235,8 @@ return \Carbon\Carbon::parse($rec->fecha)->toDateString() === $fecha;
 </div>
 
 @if ($mascotas->hasPages())
-<div style="margin-top: 20px; display: flex; justify-content: center;">
+<div style="margin-top: 20px; display: flex; justify-content: center; flex-direction: column; align-items: center;">
+    <x-pagination-info :paginator="$mascotas" itemName="mascotas" />
     {{ $mascotas->links() }}
 </div>
 @endif

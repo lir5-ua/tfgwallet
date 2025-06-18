@@ -22,10 +22,9 @@
         @method('PUT')
         @endif
 
-        <label for="imagen">Elegir imagen:</label>
-        <button type="button" onclick="abrirModal('import')" class="inline-block px-8 py-2 font-bold text-center uppercase align-middle transition-all bg-transparent border border-solid rounded-lg shadow-none cursor-pointer active:opacity-85 leading-pro text-xs ease-soft-in tracking-tight-soft bg-150 bg-x-25 hover:scale-102 active:shadow-soft-xs border-fuchsia-500 text-fuchsia-500 hover:text-fuchsia-500 hover:opacity-75 hover:shadow-none active:scale-100 active:border-fuchsia-500 active:bg-fuchsia-500 active:text-white hover:active:border-fuchsia-500 hover:active:bg-transparent hover:active:text-fuchsia-500 hover:active:opacity-75">Añadir</button>
+        <button type="button" onclick="abrirModal('import')" class="inline-block px-6 py-2 font-bold text-left text-white uppercase transition-all rounded-lg cursor-pointer bg-gradient-to-tl from-purple-700 to-pink-500 leading-pro text-sm ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs">Seleccionar imagen</button>
 
-        <div class="fixed top-0 left-0 hidden w-full h-full overflow-x-hidden overflow-y-auto transition-opacity ease-linear opacity-0 z-sticky outline-0" id="import" aria-hidden="true">
+        <div class="fixed right-300 hidden overflow-x-hidden overflow-y-auto transition-opacity ease-linear opacity-0 z-sticky outline-0" id="import" aria-hidden="true">
             <div class="relative w-auto m-2 transition-transform duration-300 pointer-events-none sm:m-7 sm:max-w-125 sm:mx-auto lg:mt-48 ease-soft-out -translate-y-13">
                 <div class="relative flex flex-col w-full bg-white border border-solid pointer-events-auto dark:bg-gray-950 bg-clip-padding border-black/20 rounded-xl outline-0">
                     <div class="flex items-center justify-between p-4 border-b border-solid shrink-0 border-slate-100 rounded-t-xl">
@@ -141,12 +140,12 @@
         <br><br>
 
         <label for="fecha_nacimiento">Fecha de nacimiento:</label><br>
-        <input type="date" name="fecha_nacimiento" value="{{ old('fecha_nacimiento', $mascota->fecha_nacimiento ?? '') }}"><br><br>
+        <input type="date" name="fecha_nacimiento" value="{{ old('fecha_nacimiento', $mascota->fecha_nacimiento ?? '') }}" class="focus:shadow-soft-primary-outline text-sm leading-5.6 ease-soft block appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-1 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"><br><br>
 
         <label for="notas">Notas:</label><br>
-        <textarea name="notas">{{ old('notas', $mascota->notas ?? '') }}</textarea><br><br>
+        <textarea name="notas" class="focus:shadow-soft-primary-outline text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-1 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none">{{ old('notas', $mascota->notas ?? '') }}</textarea><br><br>
 
-        <button type="submit">
+        <button type="submit" class="bg-green-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
             {{ isset($mascota) ? '✏️ Actualizar Mascota' : '💾 Guardar Mascota' }}
         </button>
         <a href="{{ session('return_to_after_update', route('usuarios.show', auth()->user())) }}"

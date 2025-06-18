@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,7 +13,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropUnique(['name']);
+            // Verificar si el índice existe antes de eliminarlo (MySQL)
+            $indexExists = collect(DB::select("SHOW INDEX FROM users WHERE Key_name = 'users_name_unique'"))
+                ->isNotEmpty();
+            
+            if ($indexExists) {
+                $table->dropUnique(['name']);
+            }
         });
     }
 
@@ -21,8 +28,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('name', function (Blueprint $table) {
-            //
+        Schema::table('users', function (Blueprint $table) {
+            $table->unique('name');
         });
     }
 };

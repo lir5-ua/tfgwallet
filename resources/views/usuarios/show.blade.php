@@ -27,12 +27,7 @@
             <span
                 class="absolute inset-y-0 w-full h-full bg-center bg-cover bg-gradient-to-tl from-purple-700 to-pink-500 opacity-60"></span>
         </div>
-        <form action="{{ route('modo-oscuro.toggle') }}" method="POST">
-            @csrf
-            <button type="submit" class="text-xs font-bold px-4 py-2 rounded bg-gray-700 text-white">
-                🌙 Alternar modo oscuro
-            </button>
-        </form>
+        
         <div
             class="relative flex flex-col flex-auto min-w-0 p-4 mx-6 -mt-16 overflow-hidden break-words border-0 shadow-blur rounded-2xl bg-white/80 bg-clip-border backdrop-blur-2xl backdrop-saturate-200">
             <div class="flex flex-wrap -mx-3">
@@ -336,9 +331,8 @@
                     @foreach ($mascotas as $mascota)
                     <tr>
                         <td class="bg-white text-black dark:bg-slate-400 dark:text-white p-4 rounded  p-4 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-                            <img
-                                src="{{ $mascota->imagen ? asset('storage/' . $mascota->imagen) : asset('storage/default/defaultPet.jpg') }}"
-                                class="h-10 w-10 rounded-xl object-cover">
+                        <img src="{{ $mascota->imagen ? Storage::url($mascota->imagen) : asset('storage/default/defaultPet.jpg') }}"
+     class="h-10 w-10 rounded-xl object-cover">
                         </td>
                         <td class="bg-white text-black dark:bg-slate-400 dark:text-white p-4 rounded  p-4 max-w-[100px] align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
                             <a href="{{ route('mascotas.show', $mascota) }}"

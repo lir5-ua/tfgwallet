@@ -136,7 +136,7 @@
             <div class="p-6 pb-0 mb-0 bg-white rounded-t-2xl">
                 <h6 class="text-lg font-semibold text-slate-700">Recordatorios</h6>
                 <div class="flex items-center space-x-2">
-                    <a href="{{ route('recordatorios.create', $mascota) }}"
+                    <a href="{{ route('mascotas.recordatorios.create', $mascota) }}"
                        class="h-10 px-6 py-2 font-bold text-center bg-gradient-to-tl from-green-600 to-lime-400 uppercase rounded-lg text-xs text-white flex items-center justify-center">
                         Crear
                     </a>

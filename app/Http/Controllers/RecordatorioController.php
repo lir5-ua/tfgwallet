@@ -44,17 +44,23 @@ class RecordatorioController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
+    public function create(Request $request, Mascota $mascota = null)
     {
-        $mascota = null;
-        if ($request->has('mascota_id')) {
+        // Si se pasa la mascota como parámetro de ruta (rutas anidadas)
+        if ($mascota) {
+            $mascotas = collect([$mascota]);
+        }
+        // Si se pasa mascota_id por query string (rutas normales)
+        elseif ($request->has('mascota_id')) {
             $mascota = Mascota::findOrFail($request->mascota_id);
             $mascotas = collect([$mascota]);
-        } else {
+        }
+        // Si no se especifica mascota, mostrar todas las mascotas del usuario
+        else {
             $usuarioId = $request->get('usuario_id');
             $usuario = $usuarioId ? User::findOrFail($usuarioId) : auth()->user();
             $mascotas = $usuario->mascotas;
-            //dd($usuario);
+            $mascota = null;
         }
 
         return view('recordatorios.create', compact('mascotas', 'mascota'));

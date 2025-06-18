@@ -1,12 +1,15 @@
-<button id="openSidebar" class="xl:hidden p-3 text-gray-600 hover:text-black">
+<button id="openSidebar" class="xl:hidden p-3 text-gray-600 hover:text-black z-50">
     <i class="fas fa-bars text-xl"></i>
 </button>
 <aside id="sidebar"
     class="bg-white text-black dark:bg-slate-400 dark:text-white p-4 rounded  max-w-62.5 ease-nav-brand z-990 fixed inset-y-0 my-4 ml-4 block w-full -translate-x-full xl:translate-x-0 flex-wrap items-center justify-between overflow-y-auto rounded-2xl border-0 bg-white p-0 antialiased shadow-none transition-transform duration-200 xl:left-0 xl:bg-transparent">
-    <div class="h-19.5">
-        <i id="closeSidebar" class="absolute top-0 right-0 p-4 opacity-50 cursor-pointer fas fa-times text-slate-400 xl:hidden"
-           sidenav-close></i>
-        <a class="block px-8 py-6 m-0 text-sm whitespace-nowrap text-slate-700" href="../pages/dashboard.html"
+    <div class="h-19.5 relative">
+        <button id="closeSidebar" 
+                class="absolute top-0 right-0 p-4 opacity-50 cursor-pointer hover:opacity-100 transition-opacity xl:hidden z-10"
+                style="display: none;">
+            <i class="fas fa-times text-slate-400 text-xl"></i>
+        </button>
+        <a class="block px-8 py-6 m-0 text-sm whitespace-nowrap text-slate-700"
            target="_blank">
 
             <span class="ml-1 font-semibold transition-all duration-200 ease-nav-brand">PetWallet</span>
@@ -206,14 +209,74 @@
         const openBtn = document.getElementById('openSidebar');
         const closeBtn = document.getElementById('closeSidebar');
 
-        openBtn?.addEventListener('click', () => {
+        // Función para verificar si es pantalla grande
+        function isLargeScreen() {
+            return window.innerWidth >= 1280; // xl breakpoint
+        }
+
+        // Función para mostrar/ocultar el botón de cerrar
+        function toggleCloseButton(show) {
+            if (closeBtn) {
+                closeBtn.style.display = show ? 'block' : 'none';
+            }
+        }
+
+        // Función para abrir el sidebar
+        function openSidebar() {
             sidebar.classList.remove('-translate-x-full');
             sidebar.classList.add('translate-x-0');
-        });
+            if (!isLargeScreen()) {
+                toggleCloseButton(true);
+            }
+        }
 
-        closeBtn?.addEventListener('click', () => {
+        // Función para cerrar el sidebar
+        function closeSidebar() {
             sidebar.classList.remove('translate-x-0');
             sidebar.classList.add('-translate-x-full');
+            toggleCloseButton(false);
+        }
+
+        // Event listeners para los botones
+        openBtn?.addEventListener('click', openSidebar);
+        closeBtn?.addEventListener('click', closeSidebar);
+
+        // Función para manejar el cambio de tamaño de ventana
+        function handleResize() {
+            const largeScreen = isLargeScreen();
+            
+            if (largeScreen) {
+                // En pantallas grandes, asegurar que el sidebar esté visible
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                toggleCloseButton(false); // Ocultar botón de cerrar
+            } else {
+                // En pantallas pequeñas, asegurar que el sidebar esté oculto por defecto
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('-translate-x-full');
+                toggleCloseButton(false); // Ocultar botón de cerrar
+            }
+        }
+
+        // Listener para cambios de tamaño de ventana
+        window.addEventListener('resize', handleResize);
+
+        // Ejecutar al cargar para establecer el estado inicial
+        handleResize();
+
+        // Cerrar sidebar al hacer clic fuera de él en pantallas pequeñas
+        document.addEventListener('click', function(event) {
+            if (!isLargeScreen() && 
+                !sidebar.contains(event.target) && 
+                !openBtn.contains(event.target) &&
+                sidebar.classList.contains('translate-x-0')) {
+                closeSidebar();
+            }
+        });
+
+        // Prevenir que el clic en el sidebar se propague al documento
+        sidebar.addEventListener('click', function(event) {
+            event.stopPropagation();
         });
     });
 </script>

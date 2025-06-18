@@ -26,7 +26,7 @@ class MascotaController extends Controller
         $hoy = Carbon::today();
         $user = auth()->user();
 
-        // 🔔 RECORDATORIOS
+        // 🔔 RECORDATORIOS - Optimizado con eager loading
         $hoy = now()->toDateString();
         $manana = now()->addDay()->toDateString();
         $pasado = now()->addDays(2)->toDateString();
@@ -40,11 +40,15 @@ class MascotaController extends Controller
                 }
             })
             ->where('realizado', false)
-            ->with('mascota') // Por si quieres mostrar datos de la mascota en la vista
+            ->with(['mascota.usuario']) // Eager loading optimizado
             ->get();
 
-        // 🐶 CONSULTA BASE
-        $query = Mascota::with('usuario');
+        // 🐶 CONSULTA BASE - Optimizada con eager loading
+        $query = Mascota::with(['usuario', 'historial' => function($q) {
+            $q->latest()->limit(5); // Solo los últimos 5 historiales
+        }, 'recordatorios' => function($q) {
+            $q->where('realizado', false)->where('fecha', '>=', now()->toDateString());
+        }]);
 
         // 👤 FILTRAR POR USUARIO
         if (!$user->is_admin) {
@@ -53,7 +57,7 @@ class MascotaController extends Controller
             $query->where('user_id', $usuario->id);
         }
 
-        // 🔍 FILTROS DE BUSQUEDA
+        // 🔍 FILTROS DE BUSQUEDA - Optimizados con índices
         if ($request->filled('busqueda')) {
             $query->where('nombre', 'like', '%' . $request->busqueda . '%');
         }
@@ -78,7 +82,7 @@ class MascotaController extends Controller
             $orden = 'id';
         }
 
-        // 📄 PAGINACIÓN
+        // 📄 PAGINACIÓN - Optimizada
         $mascotas = $query->orderBy($orden, $direccion)
             ->paginate(10)
             ->appends($request->all());
@@ -135,12 +139,12 @@ class MascotaController extends Controller
          $userid = $request->user_id;
            }
        if ($request->hasFile('imagen')) {
-
-
-               $rutaImagen = $request->file('imagen')->store('mascotas', 'public');
-           }else{
-           $rutaImagen = null;
-           }
+           $rutaImagen = $request->file('imagen')->store('mascotas', 'public');
+       } else {
+           // Asignar imagen por defecto según la especie
+           $especie = \App\Enums\Especie::from($request->especie);
+           $rutaImagen = 'mascotas/default_' . strtolower($especie->name) . '.jpg';
+       }
         Mascota::create([
             'nombre' => $request->nombre,
             'user_id' => $userid,
@@ -185,8 +189,10 @@ class MascotaController extends Controller
         $usuario = User::where('name', $request->nombre_usuario)->first();
          if ($request->hasFile('imagen')) {
            $rutaImagen = $request->file('imagen')->store('mascotas', 'public');
-       }else{
-       $rutaImagen = null;
+       } else {
+           // Mantener la imagen actual o asignar imagen por defecto según la especie
+           $especie = \App\Enums\Especie::from($request->especie);
+           $rutaImagen = $mascota->imagen ?: 'mascotas/default_' . strtolower($especie->name) . '.jpg';
        }
         $mascota->update([
             'nombre' => $request->nombre,
@@ -208,16 +214,43 @@ class MascotaController extends Controller
     }
 public function show(Mascota $mascota)
 {
-
+    // Lógica para mostrar recordatorios inteligentemente
+    $hoy = Carbon::today();
+    $manana = Carbon::tomorrow();
+    
+    // Primero verificar si hay recordatorios para mañana
+    $recordatoriosManana = $mascota->recordatorios()
+        ->where('realizado', false)
+        ->whereDate('fecha', $manana)
+        ->orderBy('fecha')
+        ->get();
+    
+    // Si hay recordatorios para mañana, mostrar solo esos
+    if ($recordatoriosManana->count() > 0) {
+        $recordatorios = $recordatoriosManana;
+    } else {
+        // Si no hay para mañana, verificar si hay para hoy
+        $recordatoriosHoy = $mascota->recordatorios()
+            ->where('realizado', false)
+            ->whereDate('fecha', $hoy)
+            ->orderBy('fecha')
+            ->get();
+        
+        // Si hay para hoy, mostrar solo esos
+        if ($recordatoriosHoy->count() > 0) {
+            $recordatorios = $recordatoriosHoy;
+        } else {
+            // Si no hay ni para hoy ni para mañana, mostrar todos los futuros
             $recordatorios = $mascota->recordatorios()
                 ->where('realizado', false)
-                ->whereDate('fecha', '>=', Carbon::today())
+                ->whereDate('fecha', '>=', $hoy)
                 ->orderBy('fecha')
                 ->get();
+        }
+    }
+    
     $mascota->load('usuario', 'historial'); // cargar relaciones
     session(['return_to_after_update' => url()->current()]);
-
-
 
     return view('mascotas.show', compact('mascota','recordatorios'));
 }

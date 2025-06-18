@@ -118,7 +118,8 @@
         </div>
     </div>
 
-    <div style="margin-top: 20px; display: flex; justify-content: center;">
+    <div style="margin-top: 20px; display: flex; justify-content: center; flex-direction: column; align-items: center;">
+        <x-pagination-info :paginator="$usuarios" itemName="usuarios" />
         {{ $usuarios->links() }}
     </div>
 

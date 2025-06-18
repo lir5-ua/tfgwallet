@@ -13,11 +13,13 @@ class UsuarioSeeder extends Seeder
      */
     public function run(): void
     {
+        // Usuarios específicos con la misma foto
         User::factory()->create([
             'name' => 'Manolo',
             'email' => 'manolo@example.com',
             'password' => bcrypt('123'),
             'is_admin' => true,
+            'foto' => 'perroGodlen.jpg',
         ]);
 
         User::factory()->create([
@@ -25,6 +27,14 @@ class UsuarioSeeder extends Seeder
             'email' => 'paco@example.com',
             'password' => bcrypt('123'),
             'is_admin' => false,
+            'foto' => 'perroGodlen.jpg',
         ]);
+
+        // Crear usuarios adicionales con la misma foto
+        for ($i = 0; $i < 10; $i++) {
+            User::factory()->create([
+                'foto' => 'perroGodlen.jpg',
+            ]);
+        }
     }
 }

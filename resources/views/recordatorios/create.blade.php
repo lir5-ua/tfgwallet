@@ -12,7 +12,7 @@
         @else
         <label for="mascota_id" class="block text-sm font-medium text-gray-700 mb-1">Selecciona una mascota:</label>
         <select name="mascota_id" id="mascota_id"
-                class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                class="focus:shadow-soft-primary-outline text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-1 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none ">
             @foreach ($mascotas as $m)
             <option value="{{ $m->id }}">{{ $m->nombre }}</option>
             @endforeach
@@ -20,7 +20,7 @@
         @endif
         <div class="mb-4">
             <label for="titulo" class="block text-sm font-medium text-gray-700">Título</label>
-            <input type="text" name="titulo" id="titulo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+            <input type="text" name="titulo" id="titulo" class="focus:shadow-soft-primary-outline text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"
                    required>
         </div>
 
@@ -32,7 +32,7 @@
                 name="fecha"
                 id="fecha"
                 min="{{ now()->format('Y-m-d') }}"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                class="focus:shadow-soft-primary-outline text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-1 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none
                        @error('fecha') border-red-500 @enderror"
                 required
             >
@@ -48,13 +48,15 @@
                       rows="3"></textarea>
         </div>
 
-        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
-            Guardar recordatorio
+        
+    
+    <button type="submit" class="bg-green-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+            Crear Recordatorio
         </button>
-    </form>
     <a href="{{ session('return_to_after_update', route('usuarios.show', auth()->user())) }}"
        class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
         Volver
     </a>
+    </form>
 </div>
 @endsection

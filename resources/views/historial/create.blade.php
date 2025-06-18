@@ -36,7 +36,8 @@
         <label>Descripción:</label><br>
         <textarea name="descripcion">{{ old('descripcion') }}</textarea><br><br>
 
-        <button type="submit">💾 Guardar entrada</button>
+        <button type="submit"class="bg-green-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+        >💾 Guardar entrada</button>
     </form>
 
     <br>

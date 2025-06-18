@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             UsuarioSeeder::class,
             MascotaSeeder::class,
             HistorialMedicoSeeder::class,
+            AsignarFotosSeeder::class,
         ]);
 
     }

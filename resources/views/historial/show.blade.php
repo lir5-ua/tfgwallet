@@ -3,12 +3,7 @@
 @section('content')
 <div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
     <div class="relative flex flex-col min-w-0 break-words bg-white border-0 shadow-soft-xl rounded-2xl bg-clip-border">
-        <div class="relative">
-            <a class="block shadow-xl rounded-2xl">
-                <img src="{{ asset('storage/' . ($mascota->imagen ?? 'default/defaultPet.jpg')) }}"
-                     class="max-w-full shadow-soft-2xl rounded-2xl"/>
-            </a>
-        </div>
+        
         <div class="flex-auto px-1 pt-6">
             <h1 class="text-2xl font-bold mb-4">{{ ucfirst($historial->tipo) }}</h1>
 

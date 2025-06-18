@@ -6,19 +6,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Default Cache Store
+    | Default Cache Store Name
     |--------------------------------------------------------------------------
     |
-    | This option controls the default cache store that will be used by the
-    | framework. This connection is utilized if another isn't explicitly
-    | specified when running a cache operation inside the application.
+    | This option controls the default cache connection that gets used while
+    | using this caching library. This connection is used when another is
+    | not explicitly specified when executing a given caching function.
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    'default' => env('CACHE_DRIVER', 'file'),
 
     /*
     |--------------------------------------------------------------------------
+    
     | Cache Stores
     |--------------------------------------------------------------------------
     |
@@ -26,12 +27,16 @@ return [
     | well as their drivers. You may even define multiple stores for the
     | same cache driver to group types of items stored in your caches.
     |
-    | Supported drivers: "array", "database", "file", "memcached",
-    |                    "redis", "dynamodb", "octane", "null"
+    | Supported drivers: "apc", "array", "database", "file",
+    |         "memcached", "redis", "dynamodb", "octane", "null"
     |
     */
 
     'stores' => [
+
+        'apc' => [
+            'driver' => 'apc',
+        ],
 
         'array' => [
             'driver' => 'array',
@@ -104,5 +109,27 @@ return [
     */
 
     'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache_'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cache TTL (Time To Live)
+    |--------------------------------------------------------------------------
+    |
+    | Default time to live for cached items in seconds.
+    |
+    */
+
+    'ttl' => env('CACHE_TTL', 3600),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cache Compression
+    |--------------------------------------------------------------------------
+    |
+    | Enable compression for cache data to reduce memory usage.
+    |
+    */
+
+    'compress' => env('CACHE_COMPRESS', false),
 
 ];
