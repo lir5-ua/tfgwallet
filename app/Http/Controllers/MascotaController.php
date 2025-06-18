@@ -11,6 +11,8 @@ use App\Enums\Sexo;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+
 class MascotaController extends Controller
 {
     // obliga a que solo usuarios autenticados puedan acceder a los métodos del controlador.
@@ -26,55 +28,32 @@ class MascotaController extends Controller
         $hoy = Carbon::today();
         $user = auth()->user();
 
-        // 🔔 RECORDATORIOS - Optimizado con eager loading
-        $hoy = now()->toDateString();
-        $manana = now()->addDay()->toDateString();
-        $pasado = now()->addDays(2)->toDateString();
+        // 🔔 RECORDATORIOS - Optimizado con cache
+        $cacheKey = "recordatorios_user_{$user->id}_" . md5($request->fullUrl());
+        $recordatorios = Cache::remember($cacheKey, 300, function () use ($usuario, $user) {
+            $hoy = now()->toDateString();
+            $manana = now()->addDay()->toDateString();
+            $pasado = now()->addDays(2)->toDateString();
 
-        $recordatorios = Recordatorio::whereIn('fecha', [$hoy, $manana, $pasado])
-            ->whereHas('mascota', function ($q) use ($usuario, $user) {
-                if ($user->is_admin && $usuario) {
-                    $q->where('user_id', $usuario->id);
-                } else {
-                    $q->where('user_id', $user->id);
-                }
-            })
-            ->where('realizado', false)
-            ->with(['mascota.usuario']) // Eager loading optimizado
-            ->get();
+            return Recordatorio::whereIn('fecha', [$hoy, $manana, $pasado])
+                ->whereHas('mascota', function ($q) use ($usuario, $user) {
+                    if ($user->is_admin && $usuario) {
+                        $q->where('user_id', $usuario->id);
+                    } else {
+                        $q->where('user_id', $user->id);
+                    }
+                })
+                ->where('realizado', false)
+                ->with(['mascota.usuario'])
+                ->get();
+        });
 
-        // 🐶 CONSULTA BASE - Optimizada con eager loading
-        $query = Mascota::with(['usuario', 'historial' => function($q) {
-            $q->latest()->limit(5); // Solo los últimos 5 historiales
-        }, 'recordatorios' => function($q) {
-            $q->where('realizado', false)->where('fecha', '>=', now()->toDateString());
-        }]);
+        // 🐶 CONSULTA BASE - Usando cache del modelo con filtros
+        $filters = $request->only(['busqueda', 'especie', 'raza', 'sexo']);
+        $userId = $user->is_admin && $usuario ? $usuario->id : $user->id;
+        $mascotas = Mascota::getCachedMascotas($userId, $filters);
 
-        // 👤 FILTRAR POR USUARIO
-        if (!$user->is_admin) {
-            $query->where('user_id', $user->id);
-        } elseif ($usuario !== null) {
-            $query->where('user_id', $usuario->id);
-        }
-
-        // 🔍 FILTROS DE BUSQUEDA - Optimizados con índices
-        if ($request->filled('busqueda')) {
-            $query->where('nombre', 'like', '%' . $request->busqueda . '%');
-        }
-
-        if ($request->filled('especie')) {
-            $query->where('especie', $request->especie);
-        }
-
-        if ($request->filled('raza')) {
-            $query->where('raza', $request->raza);
-        }
-
-        if ($request->filled('sexo')) {
-            $query->where('sexo', $request->sexo);
-        }
-
-        // 📊 ORDENACIÓN SEGURA
+        // 📊 ORDENACIÓN Y PAGINACIÓN
         $orden = $request->get('ordenar', 'id');
         $direccion = $request->get('direccion', 'asc');
         $columnasPermitidas = ['id', 'nombre', 'especie', 'sexo'];
@@ -82,10 +61,17 @@ class MascotaController extends Controller
             $orden = 'id';
         }
 
-        // 📄 PAGINACIÓN - Optimizada
-        $mascotas = $query->orderBy($orden, $direccion)
-            ->paginate(10)
-            ->appends($request->all());
+        // Aplicar ordenación y paginación manual
+        $mascotas = $mascotas->sortBy([$orden, $direccion]);
+        $perPage = 10;
+        $page = $request->get('page', 1);
+        $mascotas = new \Illuminate\Pagination\LengthAwarePaginator(
+            $mascotas->forPage($page, $perPage),
+            $mascotas->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         // 🏷️ TÍTULO PERSONALIZADO
         $titulo = match (true) {
@@ -93,6 +79,10 @@ class MascotaController extends Controller
             $usuario !== null => 'Mascotas de ' . $usuario->name,
             default => 'Todas las mascotas',
         };
+
+        $manana = now()->addDay()->toDateString();
+        $pasado = now()->addDays(2)->toDateString();
+
         return view('mascotas.index', compact('especies','razasPorEspecie','sexos','mascotas', 'titulo', 'recordatorios','hoy','manana','pasado'));
     }
 
@@ -141,9 +131,8 @@ class MascotaController extends Controller
        if ($request->hasFile('imagen')) {
            $rutaImagen = $request->file('imagen')->store('mascotas', 'public');
        } else {
-           // Asignar imagen por defecto según la especie
-           $especie = \App\Enums\Especie::from($request->especie);
-           $rutaImagen = 'mascotas/default_' . strtolower($especie->name) . '.jpg';
+           // Asignar imagen por defecto
+           $rutaImagen = 'mascotas/default_pet.jpg';
        }
         Mascota::create([
             'nombre' => $request->nombre,
@@ -190,9 +179,8 @@ class MascotaController extends Controller
          if ($request->hasFile('imagen')) {
            $rutaImagen = $request->file('imagen')->store('mascotas', 'public');
        } else {
-           // Mantener la imagen actual o asignar imagen por defecto según la especie
-           $especie = \App\Enums\Especie::from($request->especie);
-           $rutaImagen = $mascota->imagen ?: 'mascotas/default_' . strtolower($especie->name) . '.jpg';
+           // Mantener la imagen actual o asignar imagen por defecto
+           $rutaImagen = $mascota->imagen ?: 'mascotas/default_pet.jpg';
        }
         $mascota->update([
             'nombre' => $request->nombre,
@@ -212,35 +200,27 @@ class MascotaController extends Controller
         $mascota->delete();
         return redirect()->route('mascotas.index')->with('success', 'Mascota eliminada.');
     }
-public function show(Mascota $mascota)
+public function show(Mascota $mascota, Request $request)
 {
-    // Lógica para mostrar recordatorios inteligentemente
     $hoy = Carbon::today();
     $manana = Carbon::tomorrow();
-    
-    // Primero verificar si hay recordatorios para mañana
+    // Recordatorios (sin cambios)
     $recordatoriosManana = $mascota->recordatorios()
         ->where('realizado', false)
         ->whereDate('fecha', $manana)
         ->orderBy('fecha')
         ->get();
-    
-    // Si hay recordatorios para mañana, mostrar solo esos
     if ($recordatoriosManana->count() > 0) {
         $recordatorios = $recordatoriosManana;
     } else {
-        // Si no hay para mañana, verificar si hay para hoy
         $recordatoriosHoy = $mascota->recordatorios()
             ->where('realizado', false)
             ->whereDate('fecha', $hoy)
             ->orderBy('fecha')
             ->get();
-        
-        // Si hay para hoy, mostrar solo esos
         if ($recordatoriosHoy->count() > 0) {
             $recordatorios = $recordatoriosHoy;
         } else {
-            // Si no hay ni para hoy ni para mañana, mostrar todos los futuros
             $recordatorios = $mascota->recordatorios()
                 ->where('realizado', false)
                 ->whereDate('fecha', '>=', $hoy)
@@ -248,11 +228,25 @@ public function show(Mascota $mascota)
                 ->get();
         }
     }
-    
-    $mascota->load('usuario', 'historial'); // cargar relaciones
+    // Filtros para historial médico
+    $historialQuery = $mascota->historial();
+    if ($request->filled('fecha')) {
+        $historialQuery->whereDate('fecha', $request->fecha);
+    }
+    if ($request->filled('tipo')) {
+        $historialQuery->where('tipo', $request->tipo);
+    }
+    if ($request->filled('veterinario')) {
+        $historialQuery->where('veterinario', 'like', '%' . $request->veterinario . '%');
+    }
+    $historialFiltrado = $historialQuery->get();
+    $mascota->load('usuario');
     session(['return_to_after_update' => url()->current()]);
-
-    return view('mascotas.show', compact('mascota','recordatorios'));
+    return view('mascotas.show', [
+        'mascota' => $mascota,
+        'recordatorios' => $recordatorios,
+        'historialFiltrado' => $historialFiltrado,
+    ]);
 }
 
 

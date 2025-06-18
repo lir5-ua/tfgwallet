@@ -8,7 +8,7 @@
             <div class="p-6 pb-0 mb-0 bg-white rounded-t-2xl">
                 <div class="flex items-center space-x-4">
                     <img
-                        src="{{ $mascota->imagen ? asset('storage/' . $mascota->imagen) : asset('storage/default/defaultPet.jpg') }}"
+                        src="{{ $mascota->imagen_url }}"
                         class="h-12 w-12 rounded-xl object-cover"
                         alt="{{ $mascota->nombre }}">
 
@@ -74,9 +74,44 @@
                                 Acciones
                             </th>
                         </tr>
+                        <tr>
+                            <form method="GET" action="">
+                                <th class="text-center px-6 py-2">
+                                    <input type="date" name="fecha"
+                                           class="w-32 text-xs h-8 px-2 py-1 border border-gray-300 rounded"
+                                           value="{{ request('fecha') }}">
+                                </th>
+                                <th class="text-center px-6 py-2">
+                                    <select name="tipo"
+                                            class="w-32 text-xs h-8 px-2 py-1 border border-gray-300 rounded">
+                                        <option value="">Todos</option>
+                                        @foreach(\App\Enums\TipoHistorial::cases() as $tipo)
+                                            <option value="{{ $tipo->value }}" {{ request('tipo') === $tipo->value ? 'selected' : '' }}>{{ $tipo->value }}</option>
+                                        @endforeach
+                                    </select>
+                                </th>
+                                <th class="text-center px-6 py-2">
+                                    <input type="text" name="veterinario"
+                                           class="w-32 text-xs h-8 px-2 py-1 border border-gray-300 rounded"
+                                           placeholder="Veterinario..."
+                                           value="{{ request('veterinario') }}">
+                                </th>
+                                <th></th>
+                                <th class="px-6 py-2 text-center">
+                                    <button type="submit"
+                                            class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg uppercase">
+                                        Filtrar
+                                    </button>
+                                    <a href="{{ route('mascotas.show', $mascota) }}"
+                                       class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-tl from-slate-600 to-slate-300 rounded-lg uppercase">
+                                        Resetear
+                                    </a>
+                                </th>
+                            </form>
+                        </tr>
                         </thead>
                         <tbody>
-                        @forelse($mascota->historial as $h)
+                        @forelse($historialFiltrado as $h)
                         <tr>
                             <td class="p-4 text-center align-middle bg-transparent border-b whitespace-nowrap">
                           <span class="text-sm font-semibold text-slate-700">
@@ -134,7 +169,7 @@
         <div
             class="relative flex flex-col min-w-0 mb-6 break-words bg-white shadow-soft-xl rounded-2xl bg-clip-border">
             <div class="p-6 pb-0 mb-0 bg-white rounded-t-2xl">
-                <h6 class="text-lg font-semibold text-slate-700">Recordatorios</h6>
+                <h6 class="text-lg font-semibold text-slate-700">Recordatorios pendientes</h6>
                 <div class="flex items-center space-x-2">
                     <a href="{{ route('mascotas.recordatorios.create', $mascota) }}"
                        class="h-10 px-6 py-2 font-bold text-center bg-gradient-to-tl from-green-600 to-lime-400 uppercase rounded-lg text-xs text-white flex items-center justify-center">

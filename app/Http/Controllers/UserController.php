@@ -68,6 +68,9 @@ public function show(User $usuario)
 
     public function edit(User $usuario)
     {
+        // Cargar las relaciones necesarias
+        $usuario->load(['mascotas', 'recordatorios']);
+        
         session(['previous_url' => url()->previous()]);
         return view('usuarios.edit', compact('usuario'));
     }

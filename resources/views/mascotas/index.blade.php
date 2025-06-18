@@ -15,7 +15,7 @@ $items = $recordatorios->filter(function ($rec) use ($fecha) {
 @endphp
 
 @if ($items->isNotEmpty())
-<h2 class="mt-6 text-xl font-bold">
+<h2 class="mt-6 text-xl font-bold dark:text-white">
     Recordatorios de {{ $nombre }}
 </h2>
 
@@ -39,8 +39,8 @@ $items = $recordatorios->filter(function ($rec) use ($fecha) {
 @endforeach
 @endif
 
-<div class="container">
-    <h1 class="text-2xl font-bold">{{ $titulo }}</h1>
+<div class="container dark:bg-slate-800 dark:text-white">
+    <h1 class="text-2xl font-bold dark:text-white">{{ $titulo }}</h1>
 
     @if(session('success'))
     <div id="alert-success"
@@ -71,7 +71,7 @@ $items = $recordatorios->filter(function ($rec) use ($fecha) {
                        name="busqueda"
                        value="{{ request('busqueda') }}"
                        placeholder="Buscar por nombre"
-                       class="pl-9 pr-3 py-2 text-sm w-64 rounded-lg border border-gray-300 text-gray-700 placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"/>
+                       class="pl-9 pr-3 py-2 text-sm w-64 rounded-lg border border-gray-300 text-gray-700 placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none dark:bg-slate-600 dark:text-white dark:border-gray-500"/>
             </div>
 
             <!-- Botón Buscar -->
@@ -90,33 +90,33 @@ $items = $recordatorios->filter(function ($rec) use ($fecha) {
         </form>
     </div>
     <div
-        class="relative flex flex-col w-full min-w-0 mb-0 break-words bg-white border-0 border-transparent border-solid shadow-soft-xl rounded-2xl bg-clip-border">
-        <div class="p-6 pb-0 mb-0 bg-white rounded-t-2xl">
-            <h6 class="text-lg font-semibold">Mascotas registradas</h6>
+        class="relative flex flex-col w-full min-w-0 mb-0 break-words bg-white dark:bg-slate-400 dark:text-white border-0 border-transparent border-solid shadow-soft-xl rounded-2xl bg-clip-border">
+        <div class="p-6 pb-0 mb-0 bg-white dark:bg-slate-400 dark:text-white rounded-t-2xl">
+            <h6 class="text-lg font-semibold dark:text-white">Mascotas registradas</h6>
         </div>
         <div
-            class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-soft-xl rounded-2xl bg-clip-border">
-            <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                <h6 class="text-lg font-semibold text-slate-700">Mascotas</h6>
+            class="relative flex flex-col min-w-0 mb-6 break-words bg-white dark:bg-slate-400 dark:text-white border-0 border-transparent border-solid shadow-soft-xl rounded-2xl bg-clip-border">
+            <div class="p-6 pb-0 mb-0 bg-white dark:bg-slate-400 dark:text-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                <h6 class="text-lg font-semibold text-slate-700 dark:text-white">Mascotas</h6>
             </div>
             <div class="flex-auto px-0 pt-0 pb-2">
                 <div class="p-0 overflow-x-auto">
-                    <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
+                    <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500 dark:text-white">
                         <thead class="align-bottom">
                         <tr>
-                            <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 text-xxs tracking-wide text-slate-400 opacity-70">
+                            <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 text-xxs tracking-wide text-slate-400 dark:text-white opacity-70">
                                 Mascota
                             </th>
-                            <th class="px-6 py-3 text-center font-bold uppercase align-middle bg-transparent border-b border-gray-200 text-xxs tracking-wide text-slate-400 opacity-70">
+                            <th class="px-6 py-3 text-center font-bold uppercase align-middle bg-transparent border-b border-gray-200 text-xxs tracking-wide text-slate-400 dark:text-white opacity-70">
                                 Especie
                             </th>
-                            <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 text-xxs tracking-wide text-slate-400 opacity-70">
+                            <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 text-xxs tracking-wide text-slate-400 dark:text-white opacity-70">
                                 Raza
                             </th>
-                            <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 text-xxs tracking-wide text-slate-400 opacity-70">
+                            <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 text-xxs tracking-wide text-slate-400 dark:text-white opacity-70">
                                 Sexo
                             </th>
-                            <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 text-xxs tracking-wide text-slate-400 opacity-70">
+                            <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 text-xxs tracking-wide text-slate-400 dark:text-white opacity-70">
                                 Acciones
                             </th>
                         </tr>
@@ -125,7 +125,7 @@ $items = $recordatorios->filter(function ($rec) use ($fecha) {
                             <!-- Filtro por Especie -->
                                 <th></th>
                                 <th>
-                            <select name="especie" class="py-2 px-3 text-sm rounded-lg border border-gray-300 text-gray-700 focus:border-fuchsia-300 focus:outline-none">
+                            <select name="especie" class="py-2 px-3 text-sm rounded-lg border border-gray-300 text-gray-700 focus:border-fuchsia-300 focus:outline-none dark:bg-slate-600 dark:text-white dark:border-gray-500">
                                 <option value="">-- Especie --</option>
                                 @foreach($especies as $especie)
                                 <option value="{{ $especie['value'] }}" {{ request('especie') == $especie['value'] ? 'selected' : '' }}>
@@ -136,7 +136,7 @@ $items = $recordatorios->filter(function ($rec) use ($fecha) {
                                 </th>
 <th>
                             <!-- Filtro por Raza -->
-                            <select name="raza" class="py-2 px-3 text-sm rounded-lg border border-gray-300 text-gray-700 focus:border-fuchsia-300 focus:outline-none">
+                            <select name="raza" class="py-2 px-3 text-sm rounded-lg border border-gray-300 text-gray-700 focus:border-fuchsia-300 focus:outline-none dark:bg-slate-600 dark:text-white dark:border-gray-500">
                                 <option value="">-- Raza --</option>
                                 @php
                                 $todasRazas = collect($razasPorEspecie)->flatten()->unique();
@@ -150,7 +150,7 @@ $items = $recordatorios->filter(function ($rec) use ($fecha) {
 </th>
 <th>
                             <!-- Filtro por Sexo -->
-                            <select name="sexo" class="py-2 px-3 text-sm rounded-lg border border-gray-300 text-gray-700 focus:border-fuchsia-300 focus:outline-none">
+                            <select name="sexo" class="py-2 px-3 text-sm rounded-lg border border-gray-300 text-gray-700 focus:border-fuchsia-300 focus:outline-none dark:bg-slate-600 dark:text-white dark:border-gray-500">
                                 <option value="">-- Sexo --</option>
                                 @foreach($sexos as $sexo)
                                 <option value="{{ $sexo->value }}" {{ request('sexo') == $sexo->value ? 'selected' : '' }}>
@@ -175,30 +175,30 @@ $items = $recordatorios->filter(function ($rec) use ($fecha) {
                                 <div class="flex px-2 py-1">
                                     <div>
                                         <img
-                                            src="{{ asset('storage/' . $mascota->imagen) }}"
+                                            src="{{ $mascota->imagen_url }}"
                                             class="inline-flex items-center justify-center mr-4 text-sm text-white h-9 w-9 max-w-none rounded-xl"
                                             alt="{{ $mascota->nombre }}">
                                     </div>
                                     <div class="flex flex-col justify-center">
                                         <h6 class="mb-0 max-w-[200px] text-sm leading-normal">
                                             <a href="{{ route('mascotas.show', $mascota) }}"
-                                               class="text-sm block truncate font-semibold text-slate-700 hover:text-blue-500">
+                                               class="text-sm block truncate font-semibold text-slate-700 dark:text-white hover:text-blue-500">
                                                 {{ $mascota->nombre }}
 
                                             </a>
                                         </h6>
-                                        <p class="mb-0 text-xs leading-tight text-slate-400">{{ $mascota->usuario->name
+                                        <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white">{{ $mascota->usuario->name
                                             ?? 'N/A' }}
                                         </p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="p-4 text-sm  text-center text-slate-500 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
+                            <td class="p-4 text-sm  text-center text-slate-500 dark:text-white align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
                                 <span
-                                    class="text-xs  font-medium text-slate-600">{{ ucfirst($mascota->especie->value) }}</span>
+                                    class="text-xs  font-medium text-slate-600 dark:text-white">{{ ucfirst($mascota->especie->value) }}</span>
                             </td>
                             <td class="p-4 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-                                <span class="text-xs text-slate-600">{{ $mascota->raza }}</span>
+                                <span class="text-xs text-slate-600 dark:text-white">{{ $mascota->raza }}</span>
                             </td>
                             <td class="text-center">
                                 <span class="inline-block px-3 py-1 mr-2 font-semibold text-center text-white uppercase rounded-md text-xs shadow-sm hover:scale-105 transition

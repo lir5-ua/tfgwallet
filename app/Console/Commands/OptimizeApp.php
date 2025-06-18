@@ -75,6 +75,14 @@ class OptimizeApp extends Command
         $this->info('🗄️ Optimizing database...');
         $this->optimizeDatabase();
 
+        // Optimizar imágenes
+        $this->info('🖼️ Optimizing images...');
+        $this->optimizeImages();
+
+        // Limpiar cache temporal
+        $this->info('🧹 Cleaning temporary files...');
+        $this->cleanTempFiles();
+
         $this->info('✅ All optimizations completed!');
     }
 
@@ -102,6 +110,59 @@ class OptimizeApp extends Command
             }
         } catch (\Exception $e) {
             $this->warn('Database optimization skipped: ' . $e->getMessage());
+        }
+    }
+
+    private function cleanTempFiles()
+    {
+        $tempPaths = [
+            storage_path('framework/cache/data'),
+            storage_path('framework/sessions'),
+            storage_path('framework/views'),
+        ];
+
+        foreach ($tempPaths as $path) {
+            if (is_dir($path)) {
+                $files = glob($path . '/*');
+                foreach ($files as $file) {
+                    if (is_file($file) && filemtime($file) < strtotime('-7 days')) {
+                        unlink($file);
+                    }
+                }
+            }
+        }
+    }
+
+    private function optimizeImages()
+    {
+        $imagePath = storage_path('app/public/mascotas');
+        if (!is_dir($imagePath)) {
+            return;
+        }
+
+        $files = glob($imagePath . '/*.{jpg,jpeg,png}', GLOB_BRACE);
+        foreach ($files as $file) {
+            // Comprimir imágenes si es posible
+            $this->compressImage($file);
+        }
+    }
+
+    private function compressImage($filePath)
+    {
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        
+        if ($extension === 'jpg' || $extension === 'jpeg') {
+            $image = imagecreatefromjpeg($filePath);
+            if ($image) {
+                imagejpeg($image, $filePath, 85); // Calidad 85%
+                imagedestroy($image);
+            }
+        } elseif ($extension === 'png') {
+            $image = imagecreatefrompng($filePath);
+            if ($image) {
+                imagepng($image, $filePath, 6); // Compresión 6
+                imagedestroy($image);
+            }
         }
     }
 } 

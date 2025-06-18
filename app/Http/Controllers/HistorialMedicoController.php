@@ -18,14 +18,27 @@ class HistorialMedicoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Mascota $mascota)
-        {
+    public function index(Request $request, Mascota $mascota)
+    {
+        $query = $mascota->historial();
 
-            $historiales = $mascota->historial()->get();
-            $usuario = $mascota->user; // relación Mascota belongsTo User
-
-            return view('historial.index', compact('mascota', 'historiales', 'usuario'));
+        if ($request->filled('fecha')) {
+            $query->whereDate('fecha', $request->fecha);
         }
+        if ($request->filled('tipo')) {
+            $query->where('tipo', $request->tipo);
+        }
+        if ($request->filled('veterinario')) {
+            $query->where('veterinario', 'like', '%' . $request->veterinario . '%');
+        }
+
+        $historiales = $query->get();
+        $usuario = $mascota->user;
+        $tipos = \App\Enums\TipoHistorial::cases();
+        $filtros = $request->only(['fecha', 'tipo', 'veterinario']);
+
+        return view('historial.index', compact('mascota', 'historiales', 'usuario', 'tipos', 'filtros'));
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -78,18 +91,18 @@ class HistorialMedicoController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, Mascota $mascota, HistorialMedico $historial)
-        {
-            $request->validate([
-                'fecha' => 'required|date',
-                'tipo' => 'required|string',
-                'descripcion' => 'required|string',
-                'veterinario' => 'nullable|string'
-            ]);
+    {
+        $request->validate([
+            'fecha' => 'required|date',
+            'tipo' => 'required|string',
+            'descripcion' => 'required|string',
+            'veterinario' => 'nullable|string'
+        ]);
 
-            $historial->update($request->all());
+        $historial->update($request->all());
 
-            return redirect()->route('mascotas.historial.index', $mascota)->with('success', 'Entrada actualizada');
-        }
+        return redirect()->route('mascotas.show', $mascota)->with('success', 'Entrada actualizada');
+    }
 
 
     /**

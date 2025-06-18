@@ -10,6 +10,11 @@
         'mascotas.edit' => 'Editar Mascota',
         'usuarios.index' => 'Usuarios',
         'usuarios.show' => 'Perfil de Usuario',
+        'recordatorios.personales' => 'Recordatorios',
+        'recordatorios.calendario' => 'Calendario',
+        'recordatorios.create' => 'Crear Recordatorio',
+        'recordatorios.show' => 'Detalle de Recordatorio',
+        'recordatorios.edit' => 'Editar Recordatorio',
         // Añade aquí todas las rutas que quieras mostrar con nombre bonito
         ];
 

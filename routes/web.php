@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RecordatorioController;
 use App\Http\Controllers\TemaController;
+use App\Http\Controllers\SoporteController;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\CanEditUser;
 Route::post('/modo-oscuro', [App\Http\Controllers\TemaController::class, 'toggle'])->name('modo-oscuro.toggle');
@@ -42,6 +43,10 @@ Route::resource('mascotas.recordatorios', RecordatorioController::class);
 Route::get('recordatorios/personales/{usuario}', [RecordatorioController::class, 'personales'])
     ->middleware('auth')->name('recordatorios.personales');
 
+// Ruta del calendario de recordatorios
+Route::get('recordatorios/calendario/{usuario}', [RecordatorioController::class, 'calendario'])
+    ->middleware('auth')->name('recordatorios.calendario');
+
 // Crear recordatorio con mascota opcional
 Route::get('recordatorios/create', [RecordatorioController::class, 'create'])
     ->name('recordatorios.create');
@@ -53,6 +58,12 @@ Route::patch('/recordatorios/{recordatorio}/visto', [RecordatorioController::cla
 
 // Rutas normales para /recordatorios (posible conflicto)
 Route::resource('recordatorios', RecordatorioController::class);
+
+// Rutas de soporte
+Route::middleware(['auth'])->group(function () {
+    Route::get('/soporte/contacto', [SoporteController::class, 'mostrarFormulario'])->name('soporte.contacto');
+    Route::post('/soporte/enviar', [SoporteController::class, 'enviarMensaje'])->name('soporte.enviar');
+});
 
 Route::get('/sing', function () {
     return view('sign-in');

@@ -208,6 +208,40 @@ class RecordatorioController extends Controller
         return view('recordatorios.personales', compact('recordatorios', 'usuario', 'mascotasUnicas'));
     }
 
+    /**
+     * Mostrar calendario de recordatorios
+     */
+    public function calendario(User $usuario, Request $request)
+    {
+        $mascotaIds = $usuario->mascotas->pluck('id');
 
+        $query = Recordatorio::whereIn('mascota_id', $mascotaIds)
+            ->with('mascota');
+
+        // Filtros opcionales para el calendario
+        if ($request->filled('mascota')) {
+            $query->whereHas('mascota', function ($q) use ($request) {
+                $q->where('nombre', $request->mascota);
+            });
+        }
+
+        if ($request->filled('estado')) {
+            $query->where('realizado', $request->estado);
+        }
+
+        // Obtener recordatorios de todo el año actual para el calendario
+        $recordatorios = $query->whereYear('fecha', now()->year)
+            ->orderBy('fecha')
+            ->get();
+
+        // Obtener historial médico de las mascotas del usuario
+        $historialMedico = \App\Models\HistorialMedico::whereIn('mascota_id', $mascotaIds)
+            ->with('mascota')
+            ->whereYear('fecha', now()->year)
+            ->orderBy('fecha')
+            ->get();
+
+        return view('recordatorios.calendario', compact('recordatorios', 'historialMedico', 'usuario'));
+    }
 
 }

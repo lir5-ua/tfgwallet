@@ -3,7 +3,7 @@
 @section('title', 'historialMeidco')
 
 @section('content')
-<div class="container">
+<div class="container dark:bg-slate-800 dark:text-white">
     @if (session('success'))
     <div style="color: green;">{{ session('success') }}</div>
     @endif
@@ -26,7 +26,7 @@
                        name="busqueda"
                        value="{{ request('busqueda') }}"
                        placeholder="Buscar por nombre"
-                       class="pl-9 pr-3 py-2 text-sm w-64 rounded-lg border border-gray-300 text-gray-700 placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"/>
+                       class="pl-9 pr-3 py-2 text-sm w-64 rounded-lg border border-gray-300 text-gray-700 placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none dark:bg-slate-600 dark:text-white dark:border-gray-500"/>
             </div>
 
             <!-- Botón Buscar -->
@@ -47,22 +47,22 @@
     <div class="flex flex-wrap -mx-3">
         <div class="flex-none w-full max-w-full px-3">
             <div
-                class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-soft-xl rounded-2xl bg-clip-border">
-                <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                    <h6 class="text-lg font-semibold text-slate-700">Usuarios</h6>
+                class="relative flex flex-col min-w-0 mb-6 break-words bg-white dark:bg-slate-400 dark:text-white border-0 border-transparent border-solid shadow-soft-xl rounded-2xl bg-clip-border">
+                <div class="p-6 pb-0 mb-0 bg-white dark:bg-slate-400 dark:text-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                    <h6 class="text-lg font-semibold text-slate-700 dark:text-white">Usuarios</h6>
                 </div>
                 <div class="flex-auto px-0 pt-0 pb-2">
                     <div class="p-0 overflow-x-auto">
-                        <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
+                        <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500 dark:text-white">
                             <thead class="align-bottom">
                             <tr>
-                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs tracking-none whitespace-nowrap text-slate-400 dark:text-white opacity-70">
                                     Usuario
                                 </th>
-                                <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs tracking-none whitespace-nowrap text-slate-400 dark:text-white opacity-70">
                                     Última sesión
                                 </th>
-                                <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs tracking-none whitespace-nowrap text-slate-400 opacity-70">
+                                <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs tracking-none whitespace-nowrap text-slate-400 dark:text-white opacity-70">
                                     Acciones
                                 </th>
                             </tr>
@@ -80,16 +80,16 @@
                                         <div class="flex flex-col justify-center">
                                             <h6 class="mb-0 text-sm leading-normal">
                                                 <a href="{{ route('usuarios.show', ['usuario' => $usuario->id]) }}"
-                                                   class="text-sm font-semibold text-slate-700 hover:text-blue-500">
+                                                   class="text-sm font-semibold text-slate-700 dark:text-white hover:text-blue-500">
                                                     {{ $usuario->name }}
                                                 </a></h6>
-                                            <p class="mb-0 text-xs leading-tight text-slate-400">{{ $usuario->email
+                                            <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white">{{ $usuario->email
                                                 }}</p>
                                         </div>
                                     </div>
                                 </td>
 
-                                <td class="p-4 text-sm text-center text-slate-500 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
+                                <td class="p-4 text-sm text-center text-slate-500 dark:text-white align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
                                     {{ $usuario->ultima_conexion ? $usuario->ultima_conexion->format('d/m/Y H:i') : 'Nunca' }}
                                 </td>
                                 <td class="p-4 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
@@ -124,7 +124,7 @@
     </div>
 
     <br>
-    <a href="{{ route('mascotas.index') }}">← Volver a mascotas</a>
+    <a href="{{ route('mascotas.index') }}" class="dark:text-white">← Volver a mascotas</a>
 </div>
 @endsection
 </html>

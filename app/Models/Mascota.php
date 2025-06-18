@@ -37,6 +37,17 @@ class Mascota extends Model
     }
 
     /**
+     * Obtener la URL de la imagen de la mascota
+     */
+    public function getImagenUrlAttribute()
+    {
+        if ($this->imagen) {
+            return asset('storage/' . $this->imagen);
+        }
+        return asset('storage/mascotas/default_pet.jpg');
+    }
+
+    /**
      * Obtener mascotas con cache
      */
     public static function getCachedMascotas($userId, $filters = [])
@@ -50,11 +61,21 @@ class Mascota extends Model
                 $q->where('realizado', false)->where('fecha', '>=', now()->toDateString());
             }])->where('user_id', $userId);
             
-            // Aplicar filtros
-            foreach ($filters as $field => $value) {
-                if (!empty($value)) {
-                    $query->where($field, 'like', "%{$value}%");
-                }
+            // Aplicar filtros directamente en la consulta
+            if (!empty($filters['busqueda'])) {
+                $query->where('nombre', 'like', '%' . $filters['busqueda'] . '%');
+            }
+            
+            if (!empty($filters['especie'])) {
+                $query->where('especie', $filters['especie']);
+            }
+            
+            if (!empty($filters['raza'])) {
+                $query->where('raza', $filters['raza']);
+            }
+            
+            if (!empty($filters['sexo'])) {
+                $query->where('sexo', $filters['sexo']);
             }
             
             return $query->get();

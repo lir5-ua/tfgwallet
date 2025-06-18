@@ -52,7 +52,7 @@
                             role="tablist">
                             <li class="z-30 flex-auto text-center">
                                 <a class="z-30 block w-full px-0 py-1 mb-0 transition-all border-0 rounded-lg ease-soft-in-out bg-inherit text-slate-700"
-                                   nav-link active href="javascript:;" role="tab" aria-selected="true">
+                                   nav-link active href="{{ route('recordatorios.calendario', ['usuario' => $usuario]) }}" role="tab" aria-selected="true">
                                     <svg class="text-slate-700" width="16px" height="16px" viewBox="0 0 42 42"
                                          version="1.1" xmlns="http://www.w3.org/2000/svg"
                                          xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -74,12 +74,12 @@
                                             </g>
                                         </g>
                                     </svg>
-                                    <span class="ml-1">App</span>
+                                    <span class="ml-1">Calendario</span>
                                 </a>
                             </li>
                             <li class="z-30 flex-auto text-center">
                                 <a class="z-30 block w-full px-0 py-1 mb-0 transition-all border-0 rounded-lg ease-soft-in-out bg-inherit text-slate-700"
-                                   nav-link href="javascript:;" role="tab" aria-selected="false">
+                                   nav-link href="{{ route('soporte.contacto') }}" role="tab" aria-selected="false">
                                     <svg class="text-slate-700" width="16px" height="16px" viewBox="0 0 40 44"
                                          version="1.1" xmlns="http://www.w3.org/2000/svg"
                                          xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -99,7 +99,7 @@
                                             </g>
                                         </g>
                                     </svg>
-                                    <span class="ml-1">Messages</span>
+                                    <span class="ml-1">Soporte</span>
                                 </a>
                             </li>
                             <li class="z-30 flex-auto text-center">
@@ -331,7 +331,7 @@
                     @foreach ($mascotas as $mascota)
                     <tr>
                         <td class="bg-white text-black dark:bg-slate-400 dark:text-white p-4 rounded  p-4 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
-                        <img src="{{ $mascota->imagen ? Storage::url($mascota->imagen) : asset('storage/default/defaultPet.jpg') }}"
+                        <img src="{{ $mascota->imagen_url }}"
      class="h-10 w-10 rounded-xl object-cover">
                         </td>
                         <td class="bg-white text-black dark:bg-slate-400 dark:text-white p-4 rounded  p-4 max-w-[100px] align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">

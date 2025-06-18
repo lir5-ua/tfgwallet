@@ -53,7 +53,7 @@ class MascotaSeeder extends Seeder
                 'fecha_nacimiento' => $fechaNacimiento,
                 'sexo' => $faker->randomElement(Sexo::cases()),
                 'notas' => $notas,
-                'imagen' => 'mascotas/default_' . strtolower($especie->name) . '.jpg',
+                'imagen' => 'mascotas/default_pet.jpg',
             ]);
         }
     }

@@ -55,4 +55,9 @@ class User extends Authenticatable
         return $this->hasMany(Mascota::class);
     }
 
+    public function recordatorios()
+    {
+        return $this->hasManyThrough(Recordatorio::class, Mascota::class);
+    }
+
 }

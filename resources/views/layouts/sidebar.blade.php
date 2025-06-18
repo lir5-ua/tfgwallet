@@ -87,11 +87,12 @@
                 @php
                 $user = $usuario ?? auth()->user();
                 @endphp
-                <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors"
+                <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors
+                   {{ request()->routeIs('recordatorios.personales') ? 'bg-white font-semibold text-slate-700 rounded-lg shadow-soft-xl' : 'text-slate-500' }}"
                    href="{{ route('recordatorios.personales', ['usuario' => $user]) }}">
 
                     <div
-                        class="{{ request()->is('recordatorios*') ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : 'bg-white' }} shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                        class="{{ request()->routeIs('recordatorios.personales') ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : 'bg-white' }} shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
                              xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                             <title>credit-card</title>
@@ -110,6 +111,30 @@
                         </svg>
                     </div>
                     <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Recordatorios</span>
+                </a>
+            </li>
+
+            <li class="mt-0.5 w-full">
+                @php
+                $user = $usuario ?? auth()->user();
+                @endphp
+                <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors
+                   {{ request()->routeIs('recordatorios.calendario') ? 'bg-white font-semibold text-slate-700 rounded-lg shadow-soft-xl' : 'text-slate-500' }}"
+                   href="{{ route('recordatorios.calendario', ['usuario' => $user]) }}">
+
+                    <div
+                        class="{{ request()->routeIs('recordatorios.calendario') ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : 'bg-white' }} shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                        <svg width="12px" height="12px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 2V5" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16 2V5" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 7H21" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16 11H8" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16 15H8" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10 19H8" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Calendario</span>
                 </a>
             </li>
 
