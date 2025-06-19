@@ -108,6 +108,18 @@
                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                           placeholder="Detalles adicionales sobre el recordatorio...">{{ old('descripcion', $recordatorio->descripcion) }}</textarea>
                             </div>
+                            @if($recordatorio->fecha->isToday() || $recordatorio->fecha->isFuture())
+                                    <div class="mb-6 flex items-center">
+                                        <input type="checkbox"
+                                            name="realizado"
+                                            id="realizado"
+                                            value="1" {{ $recordatorio->realizado ? 'checked' : '' }}
+                                            class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2">
+                                        <label for="realizado" class="text-sm font-medium text-slate-700">
+                                            Marcar como Hecho
+                                        </label>
+                                    </div>
+                                @endif
 
                             <div class="flex justify-end space-x-3">
                                 <a href="{{ url()->previous() }}"
@@ -121,6 +133,8 @@
                                     Guardar Cambios
                                 </button>
                             </div>
+
+                            
                         </form>
                     </div>
                 </div>

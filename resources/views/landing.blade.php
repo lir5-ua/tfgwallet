@@ -54,7 +54,14 @@
 </div>
 
     <footer style="text-align: center; padding: 20px; background-color: #f3f3f3;">
-        &copy; {{ date('Y') }} PetWallet. Todos los derechos reservados.
+        <div style="margin-bottom: 10px;">
+            <a href="{{ url('/about') }}" style="margin: 0 10px; color: #38b2ac; text-decoration: underline;">Sobre nosotros</a>
+            <a href="{{ url('/soporte/contacto') }}" style="margin: 0 10px; color: #38b2ac; text-decoration: underline;">Contacto</a>
+            <a href="{{ url('/cookies') }}" style="margin: 0 10px; color: #38b2ac; text-decoration: underline;">Cookies</a>
+        </div>
+        <div style="font-size: 14px; color: #888;">
+            &copy; {{ date('Y') }} PetWallet. Todos los derechos reservados.
+        </div>
     </footer>
 </body>
 </html>

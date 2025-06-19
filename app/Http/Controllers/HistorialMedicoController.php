@@ -18,9 +18,13 @@ class HistorialMedicoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, Mascota $mascota)
+    public function index(Request $request, Mascota $mascota = null)
     {
-        $query = $mascota->historial();
+        if ($mascota && $mascota->exists) {
+            $query = $mascota->historial();
+        } else {
+            $query = HistorialMedico::query()->with('mascota');
+        }
 
         if ($request->filled('fecha')) {
             $query->whereDate('fecha', $request->fecha);
@@ -32,10 +36,10 @@ class HistorialMedicoController extends Controller
             $query->where('veterinario', 'like', '%' . $request->veterinario . '%');
         }
 
-        $historiales = $query->get();
-        $usuario = $mascota->user;
+        $historiales = $query->paginate(10)->appends($request->except('page'));
         $tipos = \App\Enums\TipoHistorial::cases();
         $filtros = $request->only(['fecha', 'tipo', 'veterinario']);
+        $usuario = $mascota && $mascota->exists ? $mascota->user : null;
 
         return view('historial.index', compact('mascota', 'historiales', 'usuario', 'tipos', 'filtros'));
     }

@@ -5,7 +5,7 @@
 @section('content')
 <div class="flex flex-wrap items-center space-x-4 mb-4">
     <!-- Formulario de filtros avanzado -->
-    <form method="GET" action="{{ route('mascotas.historial.index', ['mascota' => $mascota->id]) }}" class="flex flex-wrap items-end gap-2 bg-gray-50 p-4 rounded-lg shadow">
+    <form method="GET" action="{{ isset($mascota) && $mascota ? route('mascotas.historial.index', ['mascota' => $mascota->id]) : route('historial.index') }}" class="flex flex-wrap items-end gap-2 bg-gray-50 p-4 rounded-lg shadow">
         <div>
             <label for="fecha" class="block text-xs font-semibold text-slate-600 mb-1">Fecha</label>
             <input type="date" name="fecha" id="fecha" value="{{ $filtros['fecha'] ?? '' }}" class="px-2 py-1 border border-gray-300 rounded text-sm">
@@ -28,8 +28,8 @@
             <a href="{{ route('mascotas.historial.index', $mascota) }}" class="h-10 px-4 py-2 font-bold bg-gradient-to-tl from-slate-600 to-slate-300 uppercase rounded-lg text-xs text-white flex items-center justify-center">Resetear</a>
         </div>
         <div class="ml-auto">
-            <a href="{{ route('mascotas.historial.create', $mascota) }}"
-               class="h-10 px-6 py-2 font-bold text-center bg-gradient-to-tl from-green-600 to-lime-400 uppercase rounded-lg text-xs text-white flex items-center justify-center">
+            <a href="{{ isset($mascota) && $mascota ? route('mascotas.historial.create', $mascota) : '#' }}"
+               class="h-10 px-6 py-2 font-bold text-center bg-gradient-to-tl from-green-600 to-lime-400 uppercase rounded-lg text-xs text-white flex items-center justify-center {{ isset($mascota) && $mascota ? '' : 'pointer-events-none opacity-50' }}">
                 Crear
             </a>
         </div>
@@ -43,7 +43,7 @@
     <div class="flex-none w-full max-w-full px-3">
         <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white dark:bg-slate-400 dark:text-white shadow-soft-xl rounded-2xl bg-clip-border">
             <div class="p-6 pb-0 mb-0 bg-white dark:bg-slate-400 dark:text-white rounded-t-2xl">
-                <h6 class="text-lg font-semibold text-slate-700 dark:text-white">Mis recordatorios</h6>
+                <h6 class="text-lg font-semibold text-slate-700 dark:text-white">Historial médico</h6>
             </div>
             <div class="flex-auto px-0 pt-0 pb-2">
                 <div class="p-0 overflow-x-auto">
@@ -78,14 +78,14 @@
                               {{ $h->descripcion }}</span>
                         </td>
                         <td class="p-4 text-center align-middle bg-transparent border-b whitespace-nowrap">
-                            <a href="{{ route('mascotas.historial.show', [$mascota, $h]) }}"
-                               class="mr-2 inline-block px-3 py-1 font-bold text-center bg-gradient-to-tl from-green-600 to-lime-400 uppercase align-middle transition-all rounded-md cursor-pointer text-xs ease-soft-in tracking-tight-soft shadow-sm bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
+                            <a href="{{ isset($mascota) && $mascota ? route('mascotas.historial.show', [$mascota, $h]) : '#' }}"
+                               class="mr-2 inline-block px-3 py-1 font-bold text-center bg-gradient-to-tl from-green-600 to-lime-400 uppercase align-middle transition-all rounded-md cursor-pointer text-xs ease-soft-in tracking-tight-soft shadow-sm bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white {{ isset($mascota) && $mascota ? '' : 'pointer-events-none opacity-50' }}">
                                 👁️ Ver</a>
-                            <a href="{{ route('mascotas.historial.edit', [$mascota, $h]) }}"
-                               class="mr-2 inline-block px-3 py-1 font-bold text-center bg-gradient-to-tl from-blue-600 to-cyan-400 uppercase align-middle transition-all rounded-md cursor-pointer text-xs ease-soft-in tracking-tight-soft shadow-sm bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
+                            <a href="{{ isset($mascota) && $mascota ? route('mascotas.historial.edit', [$mascota, $h]) : '#' }}"
+                               class="mr-2 inline-block px-3 py-1 font-bold text-center bg-gradient-to-tl from-blue-600 to-cyan-400 uppercase align-middle transition-all rounded-md cursor-pointer text-xs ease-soft-in tracking-tight-soft shadow-sm bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white {{ isset($mascota) && $mascota ? '' : 'pointer-events-none opacity-50' }}">
                                 ✏️ Editar</a>
-                                <a href="{{ route('mascotas.historial.destroy', [$mascota, $h]) }}"
-                                   class="mr-2 inline-block px-3 py-1 font-bold text-center bg-gradient-to-tl from-red-600 to-rose-400 uppercase align-middle transition-all rounded-md cursor-pointer text-xs ease-soft-in tracking-tight-soft shadow-sm bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
+                                <a href="{{ isset($mascota) && $mascota ? route('mascotas.historial.destroy', [$mascota, $h]) : '#' }}"
+                                   class="mr-2 inline-block px-3 py-1 font-bold text-center bg-gradient-to-tl from-red-600 to-rose-400 uppercase align-middle transition-all rounded-md cursor-pointer text-xs ease-soft-in tracking-tight-soft shadow-sm bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white {{ isset($mascota) && $mascota ? '' : 'pointer-events-none opacity-50' }}">
                                     ❌ Eliminar</a>
                         </td>
                     </tr>
@@ -93,12 +93,22 @@
                 @endforelse
             </tbody>
         </table>
-    @endif
+        @if(isset($mascota) && $mascota)
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mt-4">
+                <div class="text-xs text-slate-500 dark:text-white mb-2 md:mb-0">
+                    Mostrando {{ $historiales->firstItem() }}-{{ $historiales->lastItem() }} de {{ $historiales->total() }} entradas
+                </div>
+                <div>
+                    {{ $historiales->links() }}
+                </div>
+            </div>
+        @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
+    @endif
     <br>
     <a href="{{ route('mascotas.index') }}" class="dark:text-white">← Volver a mascotas</a>
 </div>

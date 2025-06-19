@@ -18,6 +18,90 @@
 
 @section('title','profile')
 @section('content')
+@if (isset($recordatorios) && $recordatorios->isNotEmpty())
+    @php
+        // Ensure $hoy is a date string for consistent comparison
+        $hoyString = $hoy->toDateString();
+
+        $recordatoriosHoy = $recordatorios->filter(function ($rec) use ($hoyString) {
+            return \Carbon\Carbon::parse($rec->fecha)->toDateString() === $hoyString;
+        });
+
+        $recordatoriosManana = $recordatorios->filter(function ($rec) use ($manana) {
+            return \Carbon\Carbon::parse($rec->fecha)->toDateString() === $manana;
+        });
+
+        $recordatoriosPasado = $recordatorios->filter(function ($rec) use ($pasado) {
+            return \Carbon\Carbon::parse($rec->fecha)->toDateString() === $pasado;
+        });
+    @endphp
+
+    {{-- Reminders for Today --}}
+    @if ($recordatoriosHoy->isNotEmpty())
+        <h2 class="mt-6 text-xl font-bold dark:text-white">
+            Recordatorios para Hoy
+        </h2>
+        @foreach ($recordatoriosHoy as $recordatorio)
+            <div class="p-4 my-2 rounded-lg bg-red-200 text-red-600">
+                <strong>{{ $recordatorio->titulo }}</strong><br>
+                {{ $recordatorio->descripcion }}
+
+                <form action="{{ route('recordatorios.visto', $recordatorio) }}" method="POST" class="inline">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit"
+                        class="mt-2 inline-block px-4 py-1.5 font-bold text-center bg-gradient-to-tl from-purple-700 to-pink-500 uppercase align-middle transition-all rounded-lg cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
+                        👁️ Hecho
+                    </button>
+                </form>
+            </div>
+        @endforeach
+    @endif
+
+    {{-- Reminders for Tomorrow --}}
+    @if ($recordatoriosManana->isNotEmpty())
+        <h2 class="mt-6 text-xl font-bold dark:text-white">
+            Recordatorios para Mañana
+        </h2>
+        @foreach ($recordatoriosManana as $recordatorio)
+            <div class="p-4 my-2 rounded-lg bg-yellow-100">
+                <strong>{{ $recordatorio->titulo }}</strong><br>
+                {{ $recordatorio->descripcion }}
+
+                <form action="{{ route('recordatorios.visto', $recordatorio) }}" method="POST" class="inline">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit"
+                        class="mt-2 inline-block px-4 py-1.5 font-bold text-center bg-gradient-to-tl from-purple-700 to-pink-500 uppercase align-middle transition-all rounded-lg cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
+                        👁️ Hecho
+                    </button>
+                </form>
+            </div>
+        @endforeach
+    @endif
+
+    {{-- Reminders for the Day After Tomorrow --}}
+    @if ($recordatoriosPasado->isNotEmpty())
+        <h2 class="mt-6 text-xl font-bold dark:text-white">
+            Recordatorios para Pasado Mañana
+        </h2>
+        @foreach ($recordatoriosPasado as $recordatorio)
+            <div class="p-4 my-2 rounded-lg bg-green-100">
+                <strong>{{ $recordatorio->titulo }}</strong><br>
+                {{ $recordatorio->descripcion }}
+
+                <form action="{{ route('recordatorios.visto', $recordatorio) }}" method="POST" class="inline">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit"
+                        class="mt-2 inline-block px-4 py-1.5 font-bold text-center bg-gradient-to-tl from-purple-700 to-pink-500 uppercase align-middle transition-all rounded-lg cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
+                        👁️ Hecho
+                    </button>
+                </form>
+            </div>
+        @endforeach
+    @endif
+@endif
 <body class="m-0 font-sans antialiased font-normal text-base leading-default bg-gray-50 text-slate-500">
 
 <div class="bg-white text-black dark:bg-slate-800 dark:text-white p-4 rounded ease-soft-in-out relative h-full max-h-screen bg-gray-50 transition-all duration-200">
@@ -371,6 +455,9 @@
                     @endforeach
                     </tbody>
                 </table>
+                <div class="mt-4">
+                    {{ $mascotas->links() }}
+                </div>
             </div>
         </div>
         <footer class="pt-4">
@@ -392,14 +479,12 @@
                     <div class="w-full max-w-full px-3 mt-0 shrink-0 lg:w-1/2 lg:flex-none">
                         <ul class="flex flex-wrap justify-center pl-0 mb-0 list-none lg:justify-end">
                             <li class="nav-item">
-                                <a href="https://www.creative-tim.com/presentation"
-                                   class="block px-4 pt-0 pb-1 font-normal transition-colors ease-soft-in-out text-sm text-slate-500"
-                                   target="_blank">About Us</a>
+                                <a href="{{ route('about') }}"
+                                   class="block px-4 pt-0 pb-1 font-normal transition-colors ease-soft-in-out text-sm text-slate-500">About Us</a>
                             </li>
                             <li class="nav-item">
-                                <a href="https://creative-tim.com/blog"
-                                   class="block px-4 pt-0 pb-1 font-normal transition-colors ease-soft-in-out text-sm text-slate-500"
-                                   target="_blank">Blog</a>
+                                <a href="{{ route('cookies') }}"
+                                   class="block px-4 pt-0 pb-1 font-normal transition-colors ease-soft-in-out text-sm text-slate-500">cookies</a>
                             </li>
                             <li class="nav-item">
                                 <a href="https://www.creative-tim.com/license"

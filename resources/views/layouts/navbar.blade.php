@@ -8,6 +8,8 @@
         'mascotas.index' => 'Listado de Mascotas',
         'mascotas.show' => 'Detalle de Mascota',
         'mascotas.edit' => 'Editar Mascota',
+        'mascotas.historial.edit' => 'Editar entrada médica',
+        'mascotas.historial.show' => 'Detalles de entrada médica',
         'usuarios.index' => 'Usuarios',
         'usuarios.show' => 'Perfil de Usuario',
         'recordatorios.personales' => 'Recordatorios',
@@ -15,6 +17,8 @@
         'recordatorios.create' => 'Crear Recordatorio',
         'recordatorios.show' => 'Detalle de Recordatorio',
         'recordatorios.edit' => 'Editar Recordatorio',
+        'historial.index' => 'Historial médico',
+        'mascotas.historial.index' => 'Historial médico de la mascota',
         // Añade aquí todas las rutas que quieras mostrar con nombre bonito
         ];
 

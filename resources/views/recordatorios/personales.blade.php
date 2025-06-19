@@ -155,6 +155,9 @@
                         @endforelse
                         </tbody>
                     </table>
+                    <div class="mt-4 flex justify-center">
+                        {{ $recordatorios->links() }}
+                    </div>
                 </div>
             </div>
         </div>

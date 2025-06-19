@@ -132,7 +132,7 @@
                                        id="nombre" 
                                        name="nombre" 
                                        value="{{ old('nombre', $mascota->nombre ?? '') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                                        placeholder="Nombre de tu mascota"
                                        required>
                             </div>
@@ -147,7 +147,7 @@
                                                id="user_id" 
                                                name="user_id" 
                                                value="{{ old('user_id', $mascota->user_id ?? '') }}"
-                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                                                placeholder="ID del usuario propietario">
                                     </div>
                                 @else
@@ -162,13 +162,13 @@
                                 </label>
                                 <div class="relative">
                                     <button type="button" id="dropdownEspecieBtn" onclick="toggleDropdownEspecie()"
-                                            class="w-full px-3 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white">
+                                            class="w-full px-3 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-slate-800 dark:border-slate-600 dark:text-white">
                                         <span id="dropdownEspecieText">{{ collect($especies)->firstWhere('value', old('especie', $mascota->especie ?? ''))['label'] ?? '-- Selecciona especie --' }}</span>
                                         <i class="fas fa-chevron-down float-right mt-1"></i>
                                     </button>
 
                                     <ul id="dropdownEspecieMenu"
-                                        class="z-10 hidden absolute w-full mt-1 rounded-lg bg-white shadow-lg border border-gray-200 text-sm text-slate-700 max-h-60 overflow-y-auto">
+                                        class="z-10 hidden absolute w-full mt-1 rounded-lg bg-white dark:bg-slate-800 shadow-lg border border-gray-200 dark:border-slate-600 text-sm text-slate-700 dark:text-white max-h-60 overflow-y-auto">
                                         @foreach ($especies as $especie)
                                             <li>
                                                 <a href="javascript:void(0);"
@@ -190,13 +190,13 @@
                                 </label>
                                 <div class="relative">
                                     <button id="dropdownRazaBtn" onclick="toggleDropdownRaza()" type="button"
-                                            class="w-full px-3 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white">
+                                            class="w-full px-3 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-slate-800 dark:border-slate-600 dark:text-white">
                                         <span id="dropdownRazaText">{{ old('raza') ?? '-- Selecciona raza --' }}</span>
                                         <i class="fas fa-chevron-down float-right mt-1"></i>
                                     </button>
 
                                     <ul id="dropdownRazaMenu"
-                                        class="z-10 hidden absolute w-full mt-1 rounded-lg bg-white shadow-lg border border-gray-200 text-sm text-slate-700 max-h-60 overflow-y-auto">
+                                        class="z-10 hidden absolute w-full mt-1 rounded-lg bg-white dark:bg-slate-800 shadow-lg border border-gray-200 dark:border-slate-600 text-sm text-slate-700 dark:text-white max-h-60 overflow-y-auto">
                                         <!-- Se rellenará dinámicamente -->
                                     </ul>
                                     <input type="hidden" name="raza" id="raza" value="{{ old('raza') }}">
@@ -210,13 +210,13 @@
                                 </label>
                                 <div class="relative">
                                     <button id="dropdownSexoBtn" onclick="toggleDropdownSexo()" type="button"
-                                            class="w-full px-3 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white">
+                                            class="w-full px-3 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-slate-800 dark:border-slate-600 dark:text-white">
                                         <span id="dropdownSexoText">{{ old('sexo') ? ucfirst(old('sexo')) : '-- Selecciona sexo --' }}</span>
                                         <i class="fas fa-chevron-down float-right mt-1"></i>
                                     </button>
 
                                     <ul id="dropdownSexoMenu"
-                                        class="z-10 hidden absolute w-full mt-1 rounded-lg bg-white shadow-lg border border-gray-200 text-sm text-slate-700 max-h-60 overflow-y-auto">
+                                        class="z-10 hidden absolute w-full mt-1 rounded-lg bg-white dark:bg-slate-800 shadow-lg border border-gray-200 dark:border-slate-600 text-sm text-slate-700 dark:text-white max-h-60 overflow-y-auto">
                                         @foreach ($sexos as $sexo)
                                             <li>
                                                 <a href="javascript:void(0);"
@@ -240,7 +240,8 @@
                                        id="fecha_nacimiento" 
                                        name="fecha_nacimiento" 
                                        value="{{ old('fecha_nacimiento', $mascota->fecha_nacimiento ?? '') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                       max="{{ date('Y-m-d') }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-800 dark:border-slate-600 dark:text-white">
                             </div>
 
                             <!-- Notas -->
@@ -251,7 +252,7 @@
                                 <textarea id="notas" 
                                           name="notas" 
                                           rows="4"
-                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                                           placeholder="Información adicional sobre tu mascota...">{{ old('notas', $mascota->notas ?? '') }}</textarea>
                             </div>
 

@@ -88,11 +88,34 @@ class Mascota extends Model
     protected static function booted()
     {
         static::saved(function ($mascota) {
-            Cache::forget("mascotas_user_{$mascota->user_id}_*");
+            self::clearUserMascotasCache($mascota->user_id);
         });
         
         static::deleted(function ($mascota) {
-            Cache::forget("mascotas_user_{$mascota->user_id}_*");
+            self::clearUserMascotasCache($mascota->user_id);
         });
+    }
+
+    /**
+     * Elimina todas las entradas de caché de mascotas para un usuario
+     */
+    protected static function clearUserMascotasCache($userId)
+    {
+        // Si el driver soporta tags, usar tags
+        if (method_exists(Cache::getStore(), 'tags')) {
+            Cache::tags('mascotas_user_' . $userId)->flush();
+        } else {
+            // Si no, buscar todas las claves manualmente solo si es Redis
+            $cache = Cache::getStore();
+            if (method_exists($cache, 'getRedis')) {
+                $redis = $cache->getRedis();
+                $prefix = $cache->getPrefix();
+                $pattern = $prefix . "mascotas_user_{$userId}_*";
+                foreach ($redis->keys($pattern) as $key) {
+                    $redis->del($key);
+                }
+            }
+            // Si es FileStore u otro, no se puede limpiar selectivamente
+        }
     }
 }

@@ -129,6 +129,36 @@
                       <div class="text-center">
                         <button type="submit" class="inline-block w-full px-6 py-3 mt-6 mb-0 font-bold text-center text-white uppercase align-middle transition-all bg-transparent border-0 rounded-lg cursor-pointer shadow-soft-md bg-x-25 bg-150 leading-pro text-xs ease-soft-in tracking-tight-soft bg-gradient-to-tl from-blue-600 to-cyan-400 hover:scale-102 hover:shadow-soft-xs active:opacity-85">Sign in</button>
                       </div>
+                      <div class="text-center mt-4">
+                        <a href="#" id="forgot-password-link" class="text-sm text-blue-600 hover:underline">¿Olvidaste tu contraseña?</a>
+                      </div>
+                      <div id="forgot-password-form" class="mt-4 hidden">
+                        <form method="POST" action="/forgot-password">
+                          @csrf
+                          <label for="forgot_email" class="block mb-2 text-xs font-bold text-slate-700">Introduce tu correo electrónico</label>
+                          <input type="email" id="forgot_email" name="email" required disabled class="focus:shadow-soft-primary-outline text-sm leading-5.6 ease-soft block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 transition-all focus:border-fuchsia-300 focus:outline-none focus:transition-shadow mb-2" placeholder="Correo electrónico" />
+                          <button type="submit" class="inline-block w-full px-6 py-2 font-bold text-center text-white uppercase align-middle transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 border-0 rounded-lg cursor-pointer shadow-soft-md text-xs ease-soft-in tracking-tight-soft hover:scale-102 hover:shadow-soft-xs active:opacity-85">Enviar enlace de recuperación</button>
+                        </form>
+                      </div>
+                      <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                          const link = document.getElementById('forgot-password-link');
+                          const form = document.getElementById('forgot-password-form');
+                          const emailInput = document.getElementById('forgot_email');
+                          link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            form.classList.toggle('hidden');
+                            if (form.classList.contains('hidden')) {
+                              emailInput.disabled = true;
+                            } else {
+                              emailInput.disabled = false;
+                              emailInput.focus();
+                            }
+                          });
+                          // Asegurarse que al cargar la página esté deshabilitado
+                          emailInput.disabled = true;
+                        });
+                      </script>
                     </form>
                   </div>
                   <div class="p-6 px-1 pt-0 text-center bg-transparent border-t-0 border-t-solid rounded-b-2xl lg:px-2">

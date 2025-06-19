@@ -91,6 +91,11 @@
                         <span class="text-gray-700 dark:text-white">Historial médico</span>
                     </div>
                 </div>
+                <!-- Botón de exportación -->
+                <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                    <button id="exportarCSV" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">Exportar CSV</button>
+                    <button id="exportarExcel" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700">Exportar Excel</button>
+                </div>
             </div>
             <div class="flex-auto px-0 pt-0 pb-2">
                 <div class="p-6">
@@ -152,12 +157,105 @@
 
 @push('scripts')
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
+// Declarar variables globales para los eventos
+var eventosRecordatorios = [];
+var eventosHistorial = [];
+
+// Función para obtener los eventos actualmente visibles según los filtros
+function obtenerEventosFiltrados() {
+    var mostrarRecordatorios = document.getElementById('mostrarRecordatorios').checked;
+    var mostrarHistorial = document.getElementById('mostrarHistorial').checked;
+    var eventos = [];
+    if (mostrarRecordatorios) {
+        eventos = eventos.concat(eventosRecordatorios);
+    }
+    if (mostrarHistorial) {
+        eventos = eventos.concat(eventosHistorial);
+    }
+    return eventos;
+}
+
+// Función para exportar a CSV
+function exportarCSV() {
+    var eventos = obtenerEventosFiltrados();
+    if (eventos.length === 0) {
+        alert('No hay datos para exportar.');
+        return;
+    }
+    var csv = 'Tipo,Título,Mascota,Descripción,Fecha,Estado/Tipo, Veterinario\n';
+    eventos.forEach(function(ev) {
+        if (ev.extendedProps.tipo === 'recordatorio') {
+            csv += 'Recordatorio',
+            csv += ',' + '"' + ev.title.replace(/"/g, '""') + '"';
+            csv += ',' + '"' + ev.extendedProps.mascota.replace(/"/g, '""') + '"';
+            csv += ',' + '"' + ev.extendedProps.descripcion.replace(/"/g, '""') + '"';
+            csv += ',' + ev.start;
+            csv += ',' + (ev.extendedProps.realizado ? 'Realizado' : 'Pendiente');
+            csv += ',' + '';
+        } else {
+            csv += 'Historial Médico',
+            csv += ',' + '"' + ev.title.replace(/"/g, '""') + '"';
+            csv += ',' + '"' + ev.extendedProps.mascota.replace(/"/g, '""') + '"';
+            csv += ',' + '"' + ev.extendedProps.descripcion.replace(/"/g, '""') + '"';
+            csv += ',' + ev.start;
+            csv += ',' + ev.extendedProps.tipoHistorial;
+            csv += ',' + '"' + (ev.extendedProps.veterinario ? ev.extendedProps.veterinario.replace(/"/g, '""') : '') + '"';
+        }
+        csv += '\n';
+    });
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'eventos_calendario.csv';
+    link.click();
+}
+
+// Función para exportar a Excel
+function exportarExcel() {
+    var eventos = obtenerEventosFiltrados();
+    if (eventos.length === 0) {
+        alert('No hay datos para exportar.');
+        return;
+    }
+    var data = [
+        ['Tipo', 'Título', 'Mascota', 'Descripción', 'Fecha', 'Estado/Tipo', 'Veterinario']
+    ];
+    eventos.forEach(function(ev) {
+        if (ev.extendedProps.tipo === 'recordatorio') {
+            data.push([
+                'Recordatorio',
+                ev.title,
+                ev.extendedProps.mascota,
+                ev.extendedProps.descripcion,
+                ev.start,
+                ev.extendedProps.realizado ? 'Realizado' : 'Pendiente',
+                ''
+            ]);
+        } else {
+            data.push([
+                'Historial Médico',
+                ev.title,
+                ev.extendedProps.mascota,
+                ev.extendedProps.descripcion,
+                ev.start,
+                ev.extendedProps.tipoHistorial,
+                ev.extendedProps.veterinario || ''
+            ]);
+        }
+    });
+    var ws = XLSX.utils.aoa_to_sheet(data);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Eventos');
+    XLSX.writeFile(wb, 'eventos_calendario.xlsx');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
     
     // Variables para almacenar los eventos por tipo
-    var eventosRecordatorios = [
+    eventosRecordatorios = [
         @foreach($recordatorios as $recordatorio)
         {
             id: 'recordatorio_{{ $recordatorio->id }}',
@@ -175,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
         @endforeach
     ];
     
-    var eventosHistorial = [
+    eventosHistorial = [
         @foreach($historialMedico as $historial)
         {
             id: 'historial_{{ $historial->id }}',
@@ -302,5 +400,8 @@ document.getElementById('recordatorioModal').addEventListener('click', function(
         cerrarModal();
     }
 });
+
+document.getElementById('exportarCSV').addEventListener('click', exportarCSV);
+document.getElementById('exportarExcel').addEventListener('click', exportarExcel);
 </script>
 @endpush 

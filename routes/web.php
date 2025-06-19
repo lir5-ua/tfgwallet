@@ -56,6 +56,9 @@ Route::get('recordatorios/create', [RecordatorioController::class, 'create'])
 Route::patch('/recordatorios/{recordatorio}/visto', [RecordatorioController::class, 'marcarComoVisto'])
     ->name('recordatorios.visto');
 
+// Ruta para cambiar el estado de un recordatorio (realizado/pendiente)
+Route::patch('/recordatorios/{recordatorio}/cambiar-estado', [RecordatorioController::class, 'cambiarEstado'])->name('recordatorios.cambiarEstado');
+
 // Rutas normales para /recordatorios (posible conflicto)
 Route::resource('recordatorios', RecordatorioController::class);
 
@@ -68,6 +71,18 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/sing', function () {
     return view('sign-in');
 });
+
+// Rutas para recuperación de contraseña
+Route::get('forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('reset-password/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
+
+Route::view('/about', 'about')->name('about');
+Route::view('/cookies', 'cookies')->name('cookies');
+
+// Ruta para ver el índice global del historial médico
+Route::get('historial', [HistorialMedicoController::class, 'index'])->name('historial.index');
 
 
 

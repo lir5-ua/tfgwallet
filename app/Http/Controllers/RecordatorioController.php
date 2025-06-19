@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use App\Models\Recordatorio;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Cache; 
 class RecordatorioController extends Controller
 {
     /**
@@ -34,8 +35,7 @@ class RecordatorioController extends Controller
             $query->orderBy('fecha');
         }
 
-        $recordatorios = $query->get()->groupBy('mascota.nombre');
-
+        $recordatorios = $query->paginate(10)->appends($request->except('page'));
 
         return view('recordatorios.index', compact('recordatorios', 'usuario'));
     }
@@ -126,18 +126,44 @@ class RecordatorioController extends Controller
      */
     public function update(Request $request, Recordatorio $recordatorio)
     {
+        // 1. Validate the incoming request data
         $request->validate([
             'titulo' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'fecha' => 'required|date',
+            'realizado' => 'nullable|boolean', // This handles the checkbox
         ]);
 
-        $recordatorio->update([
+        // 2. Prepare the data for the update
+        $updateData = [
             'titulo' => $request->titulo,
             'descripcion' => $request->descripcion,
             'fecha' => $request->fecha,
-        ]);
+        ];
 
+        // 3. Conditionally add 'realizado' (and 'visto' if applicable) to the update data
+        // This logic ensures that 'realizado' is only updated if the recordatorio's date
+        // allows the checkbox to be displayed and manipulated.
+        if ($recordatorio->fecha->isToday() || $recordatorio->fecha->isFuture()) {
+            // $request->has('realizado') will be true if the checkbox was checked (value='1' submitted)
+            // and false if it was unchecked (no value submitted for 'realizado').
+            $updateData['realizado'] = $request->has('realizado');
+
+            // If your 'visto' column should always mirror 'realizado', add it here:
+            // $updateData['visto'] = $request->has('realizado');
+        }
+        // If the recordatorio date is in the past and not today, the checkbox isn't shown,
+        // so we don't include 'realizado' in $updateData, preserving its current value.
+
+        // 4. Perform the update
+        $recordatorio->update($updateData);
+
+        // 5. Clear the cache for the associated user's reminders
+        $usuarioId = $recordatorio->mascota->user_id;
+        $cacheKey = "recordatorios_profile_user_{$usuarioId}";
+        Cache::forget($cacheKey);
+
+        // 6. Redirect with a success message
         return redirect(session()->pull('return_to_after_update', route('usuarios.show', auth()->user())))
             ->with('success', 'Recordatorio actualizado correctamente.');
     }
@@ -167,7 +193,18 @@ class RecordatorioController extends Controller
         $recordatorio->realizado = true;
         $recordatorio->save();
 
-        return back()->with('success', 'Estado actualizado'); // vuelve a la página actual
+        $usuarioId = $recordatorio->mascota->user_id;
+
+        // Construct the exact cache key used in UserController@show
+        $cacheKey = "recordatorios_profile_user_{$usuarioId}";
+
+        // Forget (remove) this specific cache entry
+        Cache::forget($cacheKey);
+
+        // Redirect back to the previous page.
+        // Now, when the profile page reloads, it will re-fetch data from the DB
+        // because its cache entry has been cleared.
+        return back()->with('success', 'Estado actualizado');
     }
 
     public function mascota()
@@ -200,7 +237,7 @@ class RecordatorioController extends Controller
             $query->where('realizado', $request->estado);
         }
 
-        $recordatorios = $query->orderBy('realizado')->orderBy('fecha')->get();
+        $recordatorios = $query->orderBy('realizado')->orderBy('fecha')->paginate(10)->appends($request->except('page'));
 
         // Mascotas únicas para el dropdown del filtro
         $mascotasUnicas = $usuario->mascotas->pluck('nombre')->unique()->filter()->values();
@@ -242,6 +279,28 @@ class RecordatorioController extends Controller
             ->get();
 
         return view('recordatorios.calendario', compact('recordatorios', 'historialMedico', 'usuario'));
+    }
+
+    /**
+     * Cambia el estado de realizado/pendiente del recordatorio si la fecha es hoy o futura
+     */
+    public function cambiarEstado(Request $request, Recordatorio $recordatorio)
+    {
+        if ($recordatorio->fecha->isPast() && !$recordatorio->fecha->isToday()) {
+            return back()->with('error', 'No se puede modificar el estado de un recordatorio cuya fecha es anterior a hoy.');
+        }
+
+        $nuevoEstado = (bool) $request->input('nuevo_estado');
+        $recordatorio->visto = $nuevoEstado;
+        $recordatorio->realizado = $nuevoEstado;
+        $recordatorio->save();
+
+        // Limpiar la caché de recordatorios del perfil si corresponde
+        $usuarioId = $recordatorio->mascota->user_id;
+        $cacheKey = "recordatorios_profile_user_{$usuarioId}";
+        \Cache::forget($cacheKey);
+
+        return back()->with('success', 'Estado del recordatorio actualizado correctamente.');
     }
 
 }

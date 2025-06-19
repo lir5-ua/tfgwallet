@@ -9,6 +9,8 @@ use App\Enums\Sexo;
 use App\Models\Mascota;
 use App\Models\User;
 use Faker\Factory as Faker;
+use App\Models\Recordatorio;
+use App\Models\HistorialMedico;
 
 class MascotaSeeder extends Seeder
 {
@@ -33,28 +35,45 @@ class MascotaSeeder extends Seeder
             $usuarios = collect([$usuario]);
         }
 
-        // Crear 30 mascotas
-        for ($i = 0; $i < 30; $i++) {
-            $especie = $faker->randomElement(Especie::cases());
-            $razas = $especie->razas();
-            $raza = $faker->randomElement($razas);
-            
-            // Generar fecha de nacimiento (entre 1 y 15 años atrás)
-            $fechaNacimiento = $faker->optional(0.8)->dateTimeBetween('-15 years', '-1 year');
-            
-            // Generar notas realistas según la especie
-            $notas = $this->generarNotas($especie, $faker);
-            
-            Mascota::create([
-                'nombre' => $faker->firstName(),
-                'user_id' => $usuarios->random()->id,
-                'especie' => $especie,
-                'raza' => $raza,
-                'fecha_nacimiento' => $fechaNacimiento,
-                'sexo' => $faker->randomElement(Sexo::cases()),
-                'notas' => $notas,
-                'imagen' => 'mascotas/default_pet.jpg',
-            ]);
+        // Por cada usuario, crear 10 mascotas
+        foreach ($usuarios as $usuario) {
+            for ($i = 0; $i < 10; $i++) {
+                $especie = $faker->randomElement(Especie::cases());
+                $razas = $especie->razas();
+                $raza = $faker->randomElement($razas);
+                $fechaNacimiento = $faker->optional(0.8)->dateTimeBetween('-15 years', '-1 year');
+                $notas = $this->generarNotas($especie, $faker);
+                $mascota = Mascota::create([
+                    'nombre' => $faker->firstName(),
+                    'user_id' => $usuario->id,
+                    'especie' => $especie,
+                    'raza' => $raza,
+                    'fecha_nacimiento' => $fechaNacimiento,
+                    'sexo' => $faker->randomElement(Sexo::cases()),
+                    'notas' => $notas,
+                    'imagen' => 'mascotas/default_pet.jpg',
+                ]);
+                // 10 recordatorios mezclados
+                for ($j = 0; $j < 10; $j++) {
+                    Recordatorio::create([
+                        'titulo' => $faker->sentence(3),
+                        'fecha' => $faker->dateTimeBetween('-1 month', '+2 month'),
+                        'descripcion' => $faker->sentence(8),
+                        'realizado' => $j < 5 ? true : false, // 5 vistos, 5 no vistos
+                        'mascota_id' => $mascota->id,
+                    ]);
+                }
+                // 10 entradas médicas
+                for ($k = 0; $k < 10; $k++) {
+                    HistorialMedico::create([
+                        'mascota_id' => $mascota->id,
+                        'fecha' => $faker->dateTimeBetween('-2 years', 'now'),
+                        'tipo' => $faker->randomElement(['Vacunación', 'Consulta', 'Desparasitación', 'Cirugía', 'Revisión']),
+                        'descripcion' => $faker->paragraph(2),
+                        'veterinario' => $faker->name,
+                    ]);
+                }
+            }
         }
     }
     

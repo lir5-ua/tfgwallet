@@ -7,36 +7,88 @@
 
 @section('content')
 @if (isset($recordatorios) && $recordatorios->isNotEmpty())
-@foreach (['hoy' => $hoy, 'mañana' => $manana, 'pasado' => $pasado] as $nombre => $fecha)
-@php
-$items = $recordatorios->filter(function ($rec) use ($fecha) {
-    return \Carbon\Carbon::parse($rec->fecha)->toDateString() === $fecha;
-});
-@endphp
+    @php
+        // Ensure $hoy is a date string for consistent comparison
+        $hoyString = $hoy->toDateString();
 
-@if ($items->isNotEmpty())
-<h2 class="mt-6 text-xl font-bold dark:text-white">
-    Recordatorios de {{ $nombre }}
-</h2>
+        $recordatoriosHoy = $recordatorios->filter(function ($rec) use ($hoyString) {
+            return \Carbon\Carbon::parse($rec->fecha)->toDateString() === $hoyString;
+        });
 
-@foreach ($items as $recordatorio)
-<div class="p-4 my-2 rounded-lg
-                    {{ $nombre === 'hoy' ? 'bg-lime-200 text-lime-600' : ($nombre === 'mañana' ? 'bg-yellow-100' : 'bg-green-100') }}">
-    <strong>{{ $recordatorio->titulo }}</strong><br>
-    {{ $recordatorio->descripcion }}
+        $recordatoriosManana = $recordatorios->filter(function ($rec) use ($manana) {
+            return \Carbon\Carbon::parse($rec->fecha)->toDateString() === $manana;
+        });
 
-    <form action="{{ route('recordatorios.visto', $recordatorio) }}" method="POST" class="inline">
-        @csrf
-        @method('PATCH')
-        <button type="submit"
-                class="mt-2 inline-block px-4 py-1.5 font-bold text-center bg-gradient-to-tl from-purple-700 to-pink-500 uppercase align-middle transition-all rounded-lg cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
-            👁️ Hecho
-        </button>
-    </form>
-</div>
-@endforeach
-@endif
-@endforeach
+        $recordatoriosPasado = $recordatorios->filter(function ($rec) use ($pasado) {
+            return \Carbon\Carbon::parse($rec->fecha)->toDateString() === $pasado;
+        });
+    @endphp
+
+    {{-- Reminders for Today --}}
+    @if ($recordatoriosHoy->isNotEmpty())
+        <h2 class="mt-6 text-xl font-bold dark:text-white">
+            Recordatorios para Hoy
+        </h2>
+        @foreach ($recordatoriosHoy as $recordatorio)
+            <div class="p-4 my-2 rounded-lg bg-red-200 text-red-600">
+                <strong>{{ $recordatorio->titulo }}</strong><br>
+                {{ $recordatorio->descripcion }}
+
+                <form action="{{ route('recordatorios.visto', $recordatorio) }}" method="POST" class="inline">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit"
+                        class="mt-2 inline-block px-4 py-1.5 font-bold text-center bg-gradient-to-tl from-purple-700 to-pink-500 uppercase align-middle transition-all rounded-lg cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
+                        👁️ Hecho
+                    </button>
+                </form>
+            </div>
+        @endforeach
+    @endif
+
+    {{-- Reminders for Tomorrow --}}
+    @if ($recordatoriosManana->isNotEmpty())
+        <h2 class="mt-6 text-xl font-bold dark:text-white">
+            Recordatorios para Mañana
+        </h2>
+        @foreach ($recordatoriosManana as $recordatorio)
+            <div class="p-4 my-2 rounded-lg bg-yellow-100">
+                <strong>{{ $recordatorio->titulo }}</strong><br>
+                {{ $recordatorio->descripcion }}
+
+                <form action="{{ route('recordatorios.visto', $recordatorio) }}" method="POST" class="inline">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit"
+                        class="mt-2 inline-block px-4 py-1.5 font-bold text-center bg-gradient-to-tl from-purple-700 to-pink-500 uppercase align-middle transition-all rounded-lg cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
+                        👁️ Hecho
+                    </button>
+                </form>
+            </div>
+        @endforeach
+    @endif
+
+    {{-- Reminders for the Day After Tomorrow --}}
+    @if ($recordatoriosPasado->isNotEmpty())
+        <h2 class="mt-6 text-xl font-bold dark:text-white">
+            Recordatorios para Pasado Mañana
+        </h2>
+        @foreach ($recordatoriosPasado as $recordatorio)
+            <div class="p-4 my-2 rounded-lg bg-green-100">
+                <strong>{{ $recordatorio->titulo }}</strong><br>
+                {{ $recordatorio->descripcion }}
+
+                <form action="{{ route('recordatorios.visto', $recordatorio) }}" method="POST" class="inline">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit"
+                        class="mt-2 inline-block px-4 py-1.5 font-bold text-center bg-gradient-to-tl from-purple-700 to-pink-500 uppercase align-middle transition-all rounded-lg cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
+                        👁️ Hecho
+                    </button>
+                </form>
+            </div>
+        @endforeach
+    @endif
 @endif
 
 <div class="container dark:bg-slate-800 dark:text-white">
@@ -54,6 +106,19 @@ $items = $recordatorios->filter(function ($rec) use ($fecha) {
 
     <div class="flex flex-wrap items-center space-x-4 mb-4">
 
+        @php $user = auth()->user(); @endphp
+        @if($user && $user->is_admin)
+            <form method="GET" action="{{ route('mascotas.index') }}" class="flex items-center space-x-2 mr-4">
+                <input type="hidden" name="busqueda" value="{{ request('busqueda') }}">
+                <input type="hidden" name="especie" value="{{ request('especie') }}">
+                <input type="hidden" name="raza" value="{{ request('raza') }}">
+                <input type="hidden" name="sexo" value="{{ request('sexo') }}">
+                <label class="flex items-center cursor-pointer">
+                    <input type="checkbox" name="show_all" value="1" onchange="this.form.submit()" {{ request('show_all') ? 'checked' : '' }}>
+                    <span class="ml-2 text-sm">Ver todas las mascotas</span>
+                </label>
+            </form>
+        @endif
 
         <!-- Formulario de búsqueda -->
         <form method="GET" action="{{ route('mascotas.index') }}" class="flex items-center space-x-2">

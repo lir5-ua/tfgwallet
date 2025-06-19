@@ -50,8 +50,32 @@ class MascotaController extends Controller
 
         // 🐶 CONSULTA BASE - Usando cache del modelo con filtros
         $filters = $request->only(['busqueda', 'especie', 'raza', 'sexo']);
-        $userId = $user->is_admin && $usuario ? $usuario->id : $user->id;
-        $mascotas = Mascota::getCachedMascotas($userId, $filters);
+        $showAll = $user->is_admin && $request->boolean('show_all');
+        if ($showAll && $usuario === null) {
+            // Si es admin y quiere ver todas las mascotas
+            $mascotas = Mascota::with(['usuario', 'historial' => function($q) {
+                $q->latest()->limit(5);
+            }, 'recordatorios' => function($q) {
+                $q->where('realizado', false)->where('fecha', '>=', now()->toDateString());
+            }]);
+            // Aplicar filtros directamente en la consulta
+            if (!empty($filters['busqueda'])) {
+                $mascotas->where('nombre', 'like', '%' . $filters['busqueda'] . '%');
+            }
+            if (!empty($filters['especie'])) {
+                $mascotas->where('especie', $filters['especie']);
+            }
+            if (!empty($filters['raza'])) {
+                $mascotas->where('raza', $filters['raza']);
+            }
+            if (!empty($filters['sexo'])) {
+                $mascotas->where('sexo', $filters['sexo']);
+            }
+            $mascotas = $mascotas->get();
+        } else {
+            $userId = $user->is_admin && $usuario ? $usuario->id : $user->id;
+            $mascotas = Mascota::getCachedMascotas($userId, $filters);
+        }
 
         // 📊 ORDENACIÓN Y PAGINACIÓN
         $orden = $request->get('ordenar', 'id');
@@ -61,17 +85,20 @@ class MascotaController extends Controller
             $orden = 'id';
         }
 
-        // Aplicar ordenación y paginación manual
-        $mascotas = $mascotas->sortBy([$orden, $direccion]);
-        $perPage = 10;
-        $page = $request->get('page', 1);
-        $mascotas = new \Illuminate\Pagination\LengthAwarePaginator(
-            $mascotas->forPage($page, $perPage),
-            $mascotas->count(),
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
+        if ($mascotas instanceof \Illuminate\Support\Collection) {
+            $mascotas = $mascotas->sortBy([$orden, $direccion]);
+            $perPage = 10;
+            $page = $request->get('page', 1);
+            $mascotas = new \Illuminate\Pagination\LengthAwarePaginator(
+                $mascotas->forPage($page, $perPage),
+                $mascotas->count(),
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            $mascotas = $mascotas->sortBy([$orden, $direccion]);
+        }
 
         // 🏷️ TÍTULO PERSONALIZADO
         $titulo = match (true) {
@@ -239,7 +266,7 @@ public function show(Mascota $mascota, Request $request)
     if ($request->filled('veterinario')) {
         $historialQuery->where('veterinario', 'like', '%' . $request->veterinario . '%');
     }
-    $historialFiltrado = $historialQuery->get();
+    $historialFiltrado = $historialQuery->paginate(5)->appends($request->except('page'));
     $mascota->load('usuario');
     session(['return_to_after_update' => url()->current()]);
     return view('mascotas.show', [

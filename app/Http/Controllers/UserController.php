@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Cache;
 class UserController extends Controller
 {
     // obliga a que solo usuarios autenticados puedan acceder a los métodos del controlador.
@@ -51,26 +52,41 @@ class UserController extends Controller
 
         return redirect()->route('usuarios.index')->with('success', 'Usuario creado correctamente.');
     }
-public function show(User $usuario)
-{
-    $mascotas = $usuario->mascotas()->get();
-    $recordatorios = Recordatorio::whereHas('mascota', function ($query) use ($usuario) {
-        $query->where('user_id', $usuario->id);
-    })
-        ->where('fecha', '>=', now()) // solo futuros
-        ->where('realizado', false) // solo pendientes
-        ->orderBy('fecha')
-        ->limit(5)
-        ->get();
-    session(['return_to_after_update' => url()->current()]);
-    return view('usuarios.show', compact('usuario','mascotas','recordatorios'));
-}
+    public function show(User $usuario)
+    {
+        $mascotas = $usuario->mascotas()->paginate(5);
+        $user = auth()->user(); // Get the authenticated user
+
+        // 🔔 RECORDATORIOS - Optimizado con cache para el perfil
+        $cacheKey = "recordatorios_profile_user_{$usuario->id}"; // Unique cache key for the profile
+        $recordatorios = Cache::remember($cacheKey, 300, function () use ($usuario) {
+            $hoy = now()->toDateString();
+            $manana = now()->addDay()->toDateString();
+            $pasado = now()->addDays(2)->toDateString();
+
+            return Recordatorio::whereIn('fecha', [$hoy, $manana, $pasado])
+                ->whereHas('mascota', function ($q) use ($usuario) {
+                    $q->where('user_id', $usuario->id);
+                })
+                ->where('realizado', false)
+                ->orderBy('fecha', 'asc')
+                ->with(['mascota.usuario'])
+                ->get();
+        });
+
+        session(['return_to_after_update' => url()->current()]);
+
+        // You might need these variables in your profile view as well,
+        // depending on how you display the reminders.
+        $hoy = Carbon::today();
+        $manana = now()->addDay()->toDateString();
+        $pasado = now()->addDays(2)->toDateString();
+
+        return view('usuarios.show', compact('usuario', 'mascotas', 'recordatorios', 'hoy', 'manana', 'pasado'));
+    }
 
     public function edit(User $usuario)
     {
-        // Cargar las relaciones necesarias
-        $usuario->load(['mascotas', 'recordatorios']);
-        
         session(['previous_url' => url()->previous()]);
         return view('usuarios.edit', compact('usuario'));
     }
