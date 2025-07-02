@@ -48,7 +48,7 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('mascotas.historial.update', [$mascota, $historial]) }}" method="POST">
+                        <form action="{{ route('mascotas.historial.update', [$mascota->hashid, $historial->hashid]) }}" method="POST">
                             @csrf
                             @method('PUT')
                             

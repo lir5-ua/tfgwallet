@@ -3,54 +3,42 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
+use App\Models\User;
 use App\Models\Recordatorio;
+use App\Mail\RecordatoriosDiarios;
+use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
 
 class EnviarRecordatorios extends Command
 {
     protected $signature = 'recordatorios:enviar';
-    protected $description = 'Envía recordatorios por email 1 día antes de la fecha';
+    protected $description = 'Envía los recordatorios diarios por email a los usuarios que lo tengan activado';
 
     public function handle()
     {
-        $manana = now()->addDay()->toDateString();
+        $hoy = Carbon::today()->toDateString();
+        $manana = Carbon::tomorrow()->toDateString();
+        $pasado = Carbon::today()->addDays(2)->toDateString();
 
-        // Carga recordatorios con sus mascotas y usuarios
-        $recordatorios = Recordatorio::where('fecha', $manana)
-            ->with('mascota.usuario')
-            ->get();
+        $usuarios = User::where('notificar_email', true)->get();
 
-        foreach ($recordatorios as $recordatorio) {
-            $mascota = $recordatorio->mascota;
-            $usuario = $mascota?->usuario;
+        foreach ($usuarios as $usuario) {
+            $recordatoriosHoy = Recordatorio::whereHas('mascota', function($q) use ($usuario) {
+                $q->where('user_id', $usuario->id);
+            })->where('fecha', $hoy)->where('realizado', false)->get();
 
-            if (!$usuario || !$usuario->email) {
-                $this->warn("Mascota sin usuario válido para el recordatorio ID {$recordatorio->id}");
-                continue;
-            }
+            $recordatoriosManana = Recordatorio::whereHas('mascota', function($q) use ($usuario) {
+                $q->where('user_id', $usuario->id);
+            })->where('fecha', $manana)->where('realizado', false)->get();
 
-            $email = $usuario->email;
-            $name = $usuario->name;
+            $recordatoriosPasado = Recordatorio::whereHas('mascota', function($q) use ($usuario) {
+                $q->where('user_id', $usuario->id);
+            })->where('fecha', $pasado)->where('realizado', false)->get();
 
-            // SOLO enviar al correo autorizado por Resend en modo test
-            if ($email !== 'lir5@gcloud.ua.es') {
-                $this->warn("Correo omitido: $email no está permitido en modo test.");
-                continue;
-            }
-
-            // Enviar el correo
-            $response = Http::withToken(env('RESEND_API_KEY'))->post('https://api.resend.com/emails', [
-                'from' => 'onboarding@resend.dev',
-                'to' => $email,
-                'subject' => '⏰ Recordatorio para tu mascota',
-                'html' => "<p>Hola {$name},<br>Recuerda que mañana tienes: <strong>{$recordatorio->titulo}</strong></p>",
-            ]);
-
-            if ($response->successful()) {
-                $this->info("Correo enviado a $email");
-            } else {
-                $this->error("Error al enviar a $email: " . $response->body());
+            if ($recordatoriosHoy->isNotEmpty() || $recordatoriosManana->isNotEmpty() || $recordatoriosPasado->isNotEmpty()) {
+                Mail::to($usuario->email)->send(new RecordatoriosDiarios($usuario, $recordatoriosHoy, $recordatoriosManana, $recordatoriosPasado));
             }
         }
+        $this->info('Recordatorios enviados correctamente.');
     }
 }

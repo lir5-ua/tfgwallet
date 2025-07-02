@@ -101,6 +101,10 @@
             </div>
         @endforeach
     @endif
+@elseif(auth()->user()->silenciar_notificaciones_web)
+    <div class="p-4 my-2 rounded-lg bg-gray-200 text-gray-600 text-center">
+        Notificaciones web silenciadas. No se mostrarán recordatorios aquí mientras esta opción esté activa.
+    </div>
 @endif
 <body class="m-0 font-sans antialiased font-normal text-base leading-default bg-gray-50 text-slate-500">
 
@@ -253,14 +257,24 @@
                                 </div>
                             </li>
                             <li class="bg-white text-black dark:bg-slate-400 dark:text-white relative block px-0 py-2 bg-white border-0 text-inherit">
-                                <div class="min-h-6 mb-0.5 block pl-0">
-                                    <input id="answer"
-                                           class="mt-0.54 rounded-10 duration-250 ease-soft-in-out after:rounded-circle after:shadow-soft-2xl after:duration-250 checked:after:translate-x-5.25 h-5 relative float-left ml-auto w-10 cursor-pointer appearance-none border border-solid border-gray-200 bg-slate-800/10 bg-none bg-contain bg-left bg-no-repeat align-top transition-all after:absolute after:top-px after:h-4 after:w-4 after:translate-x-px after:bg-white after:content-[''] checked:border-slate-800/95 checked:bg-slate-800/95 checked:bg-none checked:bg-right"
-                                           type="checkbox"/>
-                                    <label for="answer"
-                                           class="bg-white text-black dark:bg-slate-400 dark:text-white w-4/5 mb-0 ml-4 overflow-hidden font-normal cursor-pointer select-none text-sm text-ellipsis whitespace-nowrap text-slate-500"
-                                           for="flexSwitchCheckDefault1">Notificame por email </label>
-                                </div>
+                            <div class="min-h-6 mb-0.5 block pl-0">
+                    <form method="POST" action="{{ route('settings.toggle-email-notification') }}">
+                        @csrf
+                        <input
+                            id="notificarEmailSwitch"
+                            name="notificar_email"
+                            type="checkbox"
+                            onchange="this.form.submit()"
+                            {{ Auth::user()->notificar_email ? 'checked' : '' }} {{-- Get state from authenticated user --}}
+                            class="rounded-full relative w-10 h-5 bg-gray-300 checked:bg-slate-700 appearance-none cursor-pointer transition-all duration-300
+                            after:content-[''] after:absolute after:w-4 after:h-4 after:bg-white after:rounded-full after:top-0.5 after:left-0.5
+                            checked:after:translate-x-5 after:transition-transform"
+                        />
+                        <label for="notificarEmailSwitch" class="ml-4 text-sm text-slate-700 dark:text-white cursor-pointer">
+                            Notificarme por email
+                        </label>
+                    </form>
+                </div>
                             </li>
 
                         </ul>
@@ -319,7 +333,7 @@
                         <div class="bg-white text-black dark:bg-slate-400 dark:text-white flex flex-wrap -mx-3">
                             <div class="bg-white text-black dark:bg-slate-400 dark:text-white flex items-center w-full max-w-full px-3 shrink-0 md:w-8/12 md:flex-none">
                                 <h6 class="mb-0 ">
-                                    <a href="{{ route('recordatorios.personales', ['usuario' => $usuario]) }}"
+                                    <a href="{{ route('recordatorios.index') }}"
                                        class="text-slate-800 hover:text-blue-600 transition-colors">
                                         Recordatorios
                                     </a>

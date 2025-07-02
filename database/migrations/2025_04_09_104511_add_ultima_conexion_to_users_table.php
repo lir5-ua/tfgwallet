@@ -13,13 +13,18 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->timestamp('ultima_conexion')->nullable()->after('updated_at');
+            $table->boolean('notificar_email')->default(false)->after('foto');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('ultima_conexion');
+            $table->dropColumn('notificar_email');
         });
     }
 };

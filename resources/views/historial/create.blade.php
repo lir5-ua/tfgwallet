@@ -48,7 +48,7 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('mascotas.historial.store', $mascota) }}" method="POST">
+                        <form action="{{ route('mascotas.historial.store', ['mascota_hashid' => $mascota->hashid]) }}" method="POST">
                             @csrf
                             
                             <div class="flex flex-wrap -mx-3">

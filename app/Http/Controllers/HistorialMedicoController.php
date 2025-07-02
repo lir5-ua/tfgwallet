@@ -6,21 +6,42 @@ use App\Models\Mascota;
 use App\Models\HistorialMedico;
 use Illuminate\Http\Request;
 use App\Enums\TipoHistorial;
+use Vinkla\Hashids\Facades\Hashids;
 
 class HistorialMedicoController extends Controller
 {
+
 
     protected $casts = [
         'tipo' => TipoHistorial::class,
     ];
 
+    
+    protected function resolveMascota($hashid)
+    {
+       // dd("Incoming Mascota HashID (Historial):", $hashid, "Decoded IDs (Historial):", \Vinkla\Hashids\Facades\Hashids::decode($hashid));
+        $ids = \Vinkla\Hashids\Facades\Hashids::decode($hashid);
+        if (empty($ids)) { abort(404); }
+        return \App\Models\Mascota::findOrFail($ids[0]);
+    }
+    protected function resolveHistorialMedico($hashid)
+    {
+        $ids = \Vinkla\Hashids\Facades\Hashids::decode($hashid);
+        if (empty($ids)) { abort(404); }
+        return \App\Models\HistorialMedico::findOrFail($ids[0]);
+    }
 
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, Mascota $mascota = null)
+    public function index(Request $request, $hashid = null)
     {
+        $mascota = $hashid ? $this->resolveMascota($hashid) : null;
         if ($mascota && $mascota->exists) {
+            $user = auth()->user();
+            if ($user->id !== $mascota->user_id && !$user->is_admin) {
+                abort(403, 'No tienes permiso para ver el historial de esta mascota.');
+            }
             $query = $mascota->historial();
         } else {
             $query = HistorialMedico::query()->with('mascota');
@@ -47,55 +68,84 @@ class HistorialMedicoController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Mascota $mascota)
-        {
-            return view('historial.create', compact('mascota'));
+    public function create($hashid)
+    {
+        $mascota = $this->resolveMascota($hashid);
+        $user = auth()->user();
+        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+            abort(403, 'No tienes permiso para crear historial para esta mascota.');
         }
+        return view('historial.create', compact('mascota'));
+    }
 
     /**
      * Store a newly created resource in storage.
      */
-     public function store(Request $request, Mascota $mascota)
-        {
-            $request->validate([
-                'fecha' => 'required|date',
-                'tipo' => 'required|string',
-                'descripcion' => 'required|string',
-                'veterinario' => 'nullable|string'
-            ]);
-
-            $mascota->historial()->create($request->all());
-
-            return redirect()->route('mascotas.historial.index', $mascota)->with('success', 'Entrada creada');
+    public function store(Request $request, $hashid)
+    {
+        $mascota = $this->resolveMascota($hashid);
+        $user = auth()->user();
+        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+            abort(403, 'No tienes permiso para añadir historial a esta mascota.');
         }
+        $request->validate([
+            'fecha' => 'required|date',
+            'tipo' => 'required|string',
+            'descripcion' => 'required|string',
+            'veterinario' => 'nullable|string'
+        ]);
+
+        $mascota->historial()->create($request->all());
+
+        return redirect()->route('mascotas.historial.index', $mascota->hashid)->with('success', 'Entrada creada');
+    }
 
     /**
      * Display the specified resource.
      */
-    public function show(Mascota $mascota, HistorialMedico $historial)
-        {
-            // Evitar sobrescribir si vienes de editar o crear
-            if (!str_contains(url()->previous(), 'historial') && !str_contains(url()->previous(), 'edit')) {
-                session(['return_to_after_update' => url()->previous()]);
-            }
+    public function show($mascotaHashid, $historialHashid)
+    {
+        $mascota = $this->resolveMascota($mascotaHashid);
+        $historial = $this->resolveHistorialMedico($historialHashid);
 
-            return view('historial.show', compact('mascota', 'historial'));
+        if ($historial->mascota_id !== $mascota->id) {
+            abort(404, 'La entrada de historial médico no pertenece a esta mascota.');
         }
+
+        $user = auth()->user();
+        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+            abort(403, 'No tienes permiso para ver el historial de esta mascota.');
+        }
+
+        return view('historial.show', compact('mascota', 'historial'));
+    }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Mascota $mascota, HistorialMedico $historial)
-        {
-            session(['return_to_after_update' => url()->previous()]);
-            return view('historial.edit', compact('mascota', 'historial'));
+    public function edit($mascotaHashid, $historialHashid)
+    {
+        $mascota = $this->resolveMascota($mascotaHashid);
+        $historial = $this->resolveHistorialMedico($historialHashid);
+        $user = auth()->user();
+        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+            abort(403, 'No tienes permiso para editar el historial de esta mascota.');
         }
+        session(['return_to_after_update' => url()->previous()]);
+        return view('historial.edit', compact('mascota', 'historial'));
+    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Mascota $mascota, HistorialMedico $historial)
+    public function update(Request $request, $mascotaHashid, $historialHashid)
     {
+        $mascota = $this->resolveMascota($mascotaHashid);
+        $historial = $this->resolveHistorialMedico($historialHashid);
+        $user = auth()->user();
+        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+            abort(403, 'No tienes permiso para actualizar el historial de esta mascota.');
+        }
         $request->validate([
             'fecha' => 'required|date',
             'tipo' => 'required|string',
@@ -105,17 +155,21 @@ class HistorialMedicoController extends Controller
 
         $historial->update($request->all());
 
-        return redirect()->route('mascotas.show', $mascota)->with('success', 'Entrada actualizada');
+        return redirect()->route('mascotas.show', $mascotaHashid)->with('success', 'Entrada actualizada');
     }
-
 
     /**
      * Remove the specified resource from storage.
      */
-     public function destroy(Mascota $mascota, HistorialMedico $historial)
-        {
-            $historial->delete();
-            return redirect()->back()->with('success', 'Entrada historial eliminada');
-
+    public function destroy($mascotaHashid, $historialHashid)
+    {
+        $mascota = $this->resolveMascota($mascotaHashid);
+        $historial = $this->resolveHistorialMedico($historialHashid);
+        $user = auth()->user();
+        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+            abort(403, 'No tienes permiso para eliminar el historial de esta mascota.');
         }
+        $historial->delete();
+        return redirect()->back()->with('success', 'Entrada historial eliminada.');
+    }
 }

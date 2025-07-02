@@ -12,6 +12,9 @@ class EventServiceProvider extends ServiceProvider
             // Aquí actualizamos la fecha de última conexión
             \App\Listeners\ActualizarUltimaConexion::class,
         ],
+        \Illuminate\Auth\Events\Verified::class => [ 
+            \App\Listeners\UpdateUltimaConexionOnVerified::class, 
+        ],
     ];
 
     public function boot(): void

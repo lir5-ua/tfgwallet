@@ -6,7 +6,12 @@
 
 
 @section('content')
-@if (isset($recordatorios) && $recordatorios->isNotEmpty())
+@php $user = auth()->user(); @endphp
+@if($user && $user->silenciar_notificaciones_web)
+    <div class="p-4 my-2 rounded-lg bg-gray-200 text-gray-600 text-center">
+        Notificaciones web silenciadas. No se mostrarán recordatorios destacados aquí mientras esta opción esté activa.
+    </div>
+@elseif(isset($recordatorios) && $recordatorios->isNotEmpty())
     @php
         // Ensure $hoy is a date string for consistent comparison
         $hoyString = $hoy->toDateString();
@@ -106,7 +111,6 @@
 
     <div class="flex flex-wrap items-center space-x-4 mb-4">
 
-        @php $user = auth()->user(); @endphp
         @if($user && $user->is_admin)
             <form method="GET" action="{{ route('mascotas.index') }}" class="flex items-center space-x-2 mr-4">
                 <input type="hidden" name="busqueda" value="{{ request('busqueda') }}">
@@ -122,6 +126,9 @@
 
         <!-- Formulario de búsqueda -->
         <form method="GET" action="{{ route('mascotas.index') }}" class="flex items-center space-x-2">
+            @if(request('show_all'))
+                <input type="hidden" name="show_all" value="1">
+            @endif
             <!-- Input de búsqueda con icono -->
             <!-- Botón Crear -->
             <a href="{{ route('mascotas.create') }}"
@@ -249,7 +256,6 @@
                                             <a href="{{ route('mascotas.show', $mascota) }}"
                                                class="text-sm block truncate font-semibold text-slate-700 dark:text-white hover:text-blue-500">
                                                 {{ $mascota->nombre }}
-
                                             </a>
                                         </h6>
                                         <p class="mb-0 text-xs leading-tight text-slate-400 dark:text-white">{{ $mascota->usuario->name
@@ -299,11 +305,13 @@
 </div>
 </div>
 
-@if ($mascotas->hasPages())
-<div style="margin-top: 20px; display: flex; justify-content: center; flex-direction: column; align-items: center;">
-    <x-pagination-info :paginator="$mascotas" itemName="mascotas" />
-    {{ $mascotas->links() }}
-</div>
+@if ($mascotas instanceof \Illuminate\Pagination\Paginator || $mascotas instanceof \Illuminate\Pagination\LengthAwarePaginator)
+    @if ($mascotas->hasPages())
+    <div style="margin-top: 20px; display: flex; justify-content: center; flex-direction: column; align-items: center;">
+        <x-pagination-info :paginator="$mascotas" itemName="mascotas" />
+        {{ $mascotas->links() }}
+    </div>
+    @endif
 @endif
 @endsection
 </html>

@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 descripcion: '{{ $historial->descripcion ?? 'Sin descripción' }}',
                 tipoHistorial: '{{ $historial->tipo }}',
                 veterinario: '{{ $historial->veterinario ?? 'No especificado' }}',
-                editUrl: '{{ route('mascotas.historial.edit', ['mascota' => $historial->mascota_id, 'historial' => $historial->id]) }}'
+                editUrl: '{{ $historial->mascota ? route('mascotas.historial.edit', [$historial->mascota, $historial->hashid]) : '' }}'
             }
         },
         @endforeach

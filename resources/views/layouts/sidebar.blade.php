@@ -22,7 +22,7 @@
         <ul class="flex flex-col pl-0 mb-0">
             @if(Auth::user()->is_admin)
             <li class="mt-0.5 w-full">
-                <a href="{{ url('/usuarios') }}"
+                <a href="{{ route('usuarios.index') }}"
                    class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors
    {{ request()->is('usuarios') ? 'bg-white font-semibold text-slate-700 rounded-lg shadow-soft-xl' : 'text-slate-500' }}">
                     <div
@@ -54,7 +54,7 @@
             @endif
 
             <li class="mt-0.5 w-full">
-                <a href="{{ url('/mascotas') }}"
+                <a href="{{ route('mascotas.index') }}"
                    class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors
    {{ request()->is('mascotas') ? 'bg-white font-semibold text-slate-700 rounded-lg shadow-soft-xl' : 'text-slate-500' }}">
 
@@ -88,11 +88,11 @@
                 $user = $usuario ?? auth()->user();
                 @endphp
                 <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors
-                   {{ request()->routeIs('recordatorios.personales') ? 'bg-white font-semibold text-slate-700 rounded-lg shadow-soft-xl' : 'text-slate-500' }}"
-                   href="{{ route('recordatorios.personales', ['usuario' => $user]) }}">
+                   {{ (request()->routeIs('recordatorios.*') && !request()->routeIs('recordatorios.calendario')) ? 'bg-white font-semibold text-slate-700 rounded-lg shadow-soft-xl' : 'text-slate-500' }}"
+                   href="{{ route('recordatorios.index') }}">
 
                     <div
-                        class="{{ request()->routeIs('recordatorios.personales') ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : 'bg-white' }} shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                        class="{{ (request()->routeIs('recordatorios.*') && !request()->routeIs('recordatorios.calendario')) ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : 'bg-white' }} shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                         <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1"
                              xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                             <title>credit-card</title>
@@ -120,7 +120,7 @@
                 @endphp
                 <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors
                    {{ request()->routeIs('recordatorios.calendario') ? 'bg-white font-semibold text-slate-700 rounded-lg shadow-soft-xl' : 'text-slate-500' }}"
-                   href="{{ route('recordatorios.calendario', ['usuario' => $user]) }}">
+                   href="{{ route('recordatorios.calendario', ['usuario' => $user->hashid]) }}">
 
                     <div
                         class="{{ request()->routeIs('recordatorios.calendario') ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : 'bg-white' }} shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
@@ -144,7 +144,7 @@
 
             <li class="mt-0.5 w-full">
                 <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors"
-                   href="{{ route('usuarios.show', Auth::user()->id) }}">
+                    href="{{ route('usuarios.show', Auth::user()) }}">
                     <div
                         class="{{ request()->routeIs('usuarios.show') ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : 'bg-white' }} shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                         <svg width="12px" height="12px" viewBox="0 0 46 42" version="1.1"

@@ -79,7 +79,7 @@
                                         </div>
                                         <div class="flex flex-col justify-center">
                                             <h6 class="mb-0 text-sm leading-normal">
-                                                <a href="{{ route('usuarios.show', ['usuario' => $usuario->id]) }}"
+                                                <a href="{{ route('usuarios.show', ['usuario' => $usuario->hashid]) }}"
                                                    class="text-sm font-semibold text-slate-700 dark:text-white hover:text-blue-500">
                                                     {{ $usuario->name }}
                                                 </a></h6>

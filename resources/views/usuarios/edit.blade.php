@@ -188,6 +188,19 @@
                             </div>
                             @endif
 
+                            <!-- Checkbox notificar por email -->
+                            <div class="flex items-center mt-4">
+                                <input type="checkbox"
+                                       id="notificar_email"
+                                       name="notificar_email"
+                                       {{ old('notificar_email', $usuario->notificar_email) ? 'checked' : '' }}
+                                       class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition-all duration-300">
+                                <label for="notificar_email" class="ml-3 text-sm font-semibold text-slate-700 dark:text-white cursor-pointer">
+                                    <i class="fas fa-envelope mr-2 text-blue-600"></i>
+                                    Notificarme por email
+                                </label>
+                            </div>
+
                             <!-- Botones de acción -->
                             <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t border-slate-200 dark:border-slate-600">
                                 <a href="{{ url()->previous() }}" 

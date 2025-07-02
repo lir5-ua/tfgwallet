@@ -6,6 +6,7 @@ use App\Enums\Sexo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Cache;
+use Vinkla\Hashids\Facades\Hashids;
 
 class Mascota extends Model
 {
@@ -52,34 +53,27 @@ class Mascota extends Model
      */
     public static function getCachedMascotas($userId, $filters = [])
     {
-        $cacheKey = "mascotas_user_{$userId}_" . md5(serialize($filters));
-        
-        return Cache::remember($cacheKey, 300, function () use ($userId, $filters) {
-            $query = self::with(['usuario', 'historial' => function($q) {
-                $q->latest()->limit(5);
-            }, 'recordatorios' => function($q) {
-                $q->where('realizado', false)->where('fecha', '>=', now()->toDateString());
-            }])->where('user_id', $userId);
-            
-            // Aplicar filtros directamente en la consulta
-            if (!empty($filters['busqueda'])) {
-                $query->where('nombre', 'like', '%' . $filters['busqueda'] . '%');
-            }
-            
-            if (!empty($filters['especie'])) {
-                $query->where('especie', $filters['especie']);
-            }
-            
-            if (!empty($filters['raza'])) {
-                $query->where('raza', $filters['raza']);
-            }
-            
-            if (!empty($filters['sexo'])) {
-                $query->where('sexo', $filters['sexo']);
-            }
-            
-            return $query->get();
-        });
+        $query = self::with(['usuario', 'historial' => function($q) {
+            $q->latest()->limit(5);
+        }, 'recordatorios' => function($q) {
+            $q->where('realizado', false)->where('fecha', '>=', now()->toDateString());
+        }])->where('user_id', $userId);
+
+        // Aplica los filtros directamente en la consulta
+        if (!empty($filters['busqueda'])) {
+            $query->where('nombre', 'like', '%' . $filters['busqueda'] . '%');
+        }
+        if (!empty($filters['especie'])) {
+            $query->where('especie', $filters['especie']);
+        }
+        if (!empty($filters['raza'])) {
+            $query->where('raza', $filters['raza']);
+        }
+        if (!empty($filters['sexo'])) {
+            $query->where('sexo', $filters['sexo']);
+        }
+
+        return $query; // Devuelve SIEMPRE el query builder, nunca cachees esto
     }
 
     /**
@@ -117,5 +111,28 @@ class Mascota extends Model
             }
             // Si es FileStore u otro, no se puede limpiar selectivamente
         }
+    }
+
+    public function getRouteKey()
+    {
+        return Hashids::encode($this->getKey());
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'hashid';
+    }
+
+    public function getHashidAttribute()
+    {
+        return Hashids::encode($this->getKey());
+    }
+    // Add this if you haven't already, for consistency and explicit retrieval
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field === 'hashid') {
+            return $this->where('id', Hashids::decode($value))->firstOrFail();
+        }
+        return parent::resolveRouteBinding($value, $field);
     }
 }

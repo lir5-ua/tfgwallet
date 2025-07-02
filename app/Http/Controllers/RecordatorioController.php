@@ -7,7 +7,9 @@ use Carbon\Carbon;
 use App\Models\Recordatorio;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Cache; 
+use Illuminate\Support\Facades\Cache;
+use Vinkla\Hashids\Facades\Hashids;
+
 class RecordatorioController extends Controller
 {
     /**
@@ -20,91 +22,112 @@ class RecordatorioController extends Controller
 
     public function index(Request $request)
     {
-        $usuario = $request->has('usuario_id') && auth()->user()->is_admin
-            ? User::findOrFail($request->usuario_id)
-            : auth()->user();
+        $usuario = auth()->user();
+        $mascotaIds = $usuario->mascotas->pluck('id');
 
-        $query = Recordatorio::with('mascota')
-            ->whereHas('mascota', function ($q) use ($usuario) {
-                $q->where('user_id', $usuario->id);
-            })
-            ->whereDate('fecha', '>=', Carbon::today())
-            ->where('realizado', false);
+        $query = Recordatorio::whereIn('mascota_id', $mascotaIds)
+            ->with('mascota');
 
-        if ($request->query('sort') === 'fecha') {
-            $query->orderBy('fecha');
+        if ($request->filled('mascota')) {
+            $query->whereHas('mascota', function ($q) use ($request) {
+                $q->where('nombre', $request->mascota);
+            });
         }
 
-        $recordatorios = $query->paginate(10)->appends($request->except('page'));
+        if ($request->filled('titulo')) {
+            $query->where('titulo', 'like', '%' . $request->titulo . '%');
+        }
+        if ($request->filled('fecha')) {
+            $query->whereDate('fecha', '>=', $request->fecha);
+        }
+        if ($request->filled('estado')) {
+            $query->where('realizado', $request->estado);
+        }
 
-        return view('recordatorios.index', compact('recordatorios', 'usuario'));
+        $recordatorios = $query->orderBy('realizado')->orderBy('fecha')->paginate(10)->appends($request->except('page'));
+
+        $mascotasUnicas = $usuario->mascotas->pluck('nombre')->unique()->filter()->values();
+
+        $hoy = Carbon::today();
+        
+        $manana = now()->addDay()->toDateString();
+        $pasado = now()->addDays(2)->toDateString();
+
+        return view('recordatorios.personales', compact('recordatorios', 'usuario', 'mascotasUnicas', 'hoy', 'manana', 'pasado'));
     }
 
+    protected function resolveMascota($hashid)
+    {
+        
+        $ids = Hashids::decode($hashid);
+        if (count($ids) === 0) {
+            abort(404);
+        }
+        return \App\Models\Mascota::findOrFail($ids[0]);
+    }
+
+    protected function resolveRecordatorio($hashid)
+    {
+        $ids = Hashids::decode($hashid);
+        if (count($ids) === 0) {
+            abort(404);
+        }
+        return \App\Models\Recordatorio::findOrFail($ids[0]);
+    }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request, Mascota $mascota = null)
+    public function create(Request $request, $hashid = null)
     {
-        // Si se pasa la mascota como parámetro de ruta (rutas anidadas)
+        $mascota = $hashid ? $this->resolveMascota($hashid) : null;
         if ($mascota) {
             $mascotas = collect([$mascota]);
-        }
-        // Si se pasa mascota_id por query string (rutas normales)
-        elseif ($request->has('mascota_id')) {
-            $mascota = Mascota::findOrFail($request->mascota_id);
+        } elseif ($request->has('mascota_id')) {
+            $mascota = $this->resolveMascota($request->mascota_id);
             $mascotas = collect([$mascota]);
-        }
-        // Si no se especifica mascota, mostrar todas las mascotas del usuario
-        else {
+        } else {
             $usuarioId = $request->get('usuario_id');
             $usuario = $usuarioId ? User::findOrFail($usuarioId) : auth()->user();
             $mascotas = $usuario->mascotas;
             $mascota = null;
         }
-
         return view('recordatorios.create', compact('mascotas', 'mascota'));
     }
-
-
-
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, $hashid = null)
     {
+        $mascota = $hashid ? $this->resolveMascota($hashid) : null;
         $validated = $request->validate([
-            'mascota_id' => 'required|exists:mascotas,id',
+            'mascota_id' => 'required',
             'titulo' => 'required|string|max:255',
             'fecha' => 'required|date',
             'descripcion' => 'nullable|string',
         ]);
-
-        // ⚠️ Aquí obtenemos la mascota por ID
-        $mascota = Mascota::find($validated['mascota_id']);
-
-        // ✅ Ahora creamos el recordatorio asociado
-        $mascota->recordatorios()->create([
+        $mascota = $mascota ?: $this->resolveMascota($validated['mascota_id']);
+        $recordatorio = $mascota->recordatorios()->create([
             'titulo' => $validated['titulo'],
             'fecha' => $validated['fecha'],
             'descripcion' => $validated['descripcion'],
             'realizado' => false,
         ]);
-        //dd(session('return_to_after_update'));
-
-        return redirect(session('return_to_after_update', route('mascotas.show', $mascota)))
-            ->with('success', 'Historial creado correctamente');
+        return redirect()->route('recordatorios.index')->with('success', 'Recordatorio creado correctamente.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Recordatorio $recordatorio)
+    public function show($hashid)
     {
+        $recordatorio = $this->resolveRecordatorio($hashid);
+        $authUser = auth()->user();
+        if ($authUser->id !== $recordatorio->mascota->user_id && !$authUser->is_admin) {
+            abort(403, 'No tienes permiso para acceder a este recordatorio.');
+        }
         $referer = url()->previous();
-
-        // Solo guardar si NO venimos de edit (para evitar bucles)
         if (!str_contains($referer, '/edit')) {
             session(['return_to_after_update' => $referer]);
         }
@@ -114,96 +137,74 @@ class RecordatorioController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Recordatorio $recordatorio)
+    public function edit($hashid)
     {
-
+        $recordatorio = $this->resolveRecordatorio($hashid);
+        $authUser = auth()->user();
+        if ($authUser->id !== $recordatorio->mascota->user_id && !$authUser->is_admin) {
+            abort(403, 'No tienes permiso para acceder a este recordatorio.');
+        }
         return view('recordatorios.edit', compact('recordatorio'));
-
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Recordatorio $recordatorio)
+    public function update(Request $request, $hashid)
     {
-        // 1. Validate the incoming request data
+        $recordatorio = $this->resolveRecordatorio($hashid);
+        $authUser = auth()->user();
+        if ($authUser->id !== $recordatorio->mascota->user_id && !$authUser->is_admin) {
+            abort(403, 'No tienes permiso para acceder a este recordatorio.');
+        }
         $request->validate([
             'titulo' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'fecha' => 'required|date',
-            'realizado' => 'nullable|boolean', // This handles the checkbox
+            'realizado' => 'nullable|boolean',
         ]);
-
-        // 2. Prepare the data for the update
         $updateData = [
             'titulo' => $request->titulo,
             'descripcion' => $request->descripcion,
             'fecha' => $request->fecha,
         ];
-
-        // 3. Conditionally add 'realizado' (and 'visto' if applicable) to the update data
-        // This logic ensures that 'realizado' is only updated if the recordatorio's date
-        // allows the checkbox to be displayed and manipulated.
         if ($recordatorio->fecha->isToday() || $recordatorio->fecha->isFuture()) {
-            // $request->has('realizado') will be true if the checkbox was checked (value='1' submitted)
-            // and false if it was unchecked (no value submitted for 'realizado').
             $updateData['realizado'] = $request->has('realizado');
-
-            // If your 'visto' column should always mirror 'realizado', add it here:
-            // $updateData['visto'] = $request->has('realizado');
         }
-        // If the recordatorio date is in the past and not today, the checkbox isn't shown,
-        // so we don't include 'realizado' in $updateData, preserving its current value.
-
-        // 4. Perform the update
         $recordatorio->update($updateData);
-
-        // 5. Clear the cache for the associated user's reminders
         $usuarioId = $recordatorio->mascota->user_id;
         $cacheKey = "recordatorios_profile_user_{$usuarioId}";
         Cache::forget($cacheKey);
-
-        // 6. Redirect with a success message
         return redirect(session()->pull('return_to_after_update', route('usuarios.show', auth()->user())))
             ->with('success', 'Recordatorio actualizado correctamente.');
     }
 
-
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($hashid)
     {
-        $recordatorio = Recordatorio::with('mascota.usuario')->findOrFail($id);
-
-        // Obtener el usuario antes de eliminar
+        $recordatorio = $this->resolveRecordatorio($hashid);
+        $authUser = auth()->user();
+        if ($authUser->id !== $recordatorio->mascota->user_id && !$authUser->is_admin) {
+            abort(403, 'No tienes permiso para acceder a este recordatorio.');
+        }
         $usuario = $recordatorio->mascota->usuario;
         $recordatorio->delete();
-        $recordatorios = Recordatorio::with('mascota')
-            ->whereDate('fecha', '>=', Carbon::today())
-            ->orderBy('fecha')
-            ->get()
-            ->groupBy('mascota.nombre');
-
         return redirect()->back()->with('success', 'Entrada historial eliminada');
     }
 
-    public function marcarComoVisto(Recordatorio $recordatorio)
+    public function marcarComoVisto($hashid)
     {
+        $recordatorio = $this->resolveRecordatorio($hashid);
         $recordatorio->realizado = true;
         $recordatorio->save();
 
         $usuarioId = $recordatorio->mascota->user_id;
 
-        // Construct the exact cache key used in UserController@show
         $cacheKey = "recordatorios_profile_user_{$usuarioId}";
 
-        // Forget (remove) this specific cache entry
         Cache::forget($cacheKey);
-
-        // Redirect back to the previous page.
-        // Now, when the profile page reloads, it will re-fetch data from the DB
-        // because its cache entry has been cleared.
         return back()->with('success', 'Estado actualizado');
     }
 
@@ -214,6 +215,10 @@ class RecordatorioController extends Controller
 
     public function personales(User $usuario, Request $request)
     {
+        $authUser = auth()->user();
+        if ($authUser->id !== $usuario->id && !$authUser->is_admin) {
+            abort(403, 'No tienes permiso para ver los recordatorios de este usuario.');
+        }
         $mascotaIds = $usuario->mascotas->pluck('id');
 
         $query = Recordatorio::whereIn('mascota_id', $mascotaIds)
@@ -237,12 +242,16 @@ class RecordatorioController extends Controller
             $query->where('realizado', $request->estado);
         }
 
-        $recordatorios = $query->orderBy('realizado')->orderBy('fecha')->paginate(10)->appends($request->except('page'));
+        $recordatorios = $query->orderBy('realizado')->orderBy('fecha')->paginate(10)->appends($request->all());
 
         // Mascotas únicas para el dropdown del filtro
         $mascotasUnicas = $usuario->mascotas->pluck('nombre')->unique()->filter()->values();
 
-        return view('recordatorios.personales', compact('recordatorios', 'usuario', 'mascotasUnicas'));
+        $hoy = Carbon::today();
+        $manana = now()->addDay()->toDateString();
+        $pasado = now()->addDays(2)->toDateString();
+
+        return view('recordatorios.personales', compact('recordatorios', 'usuario', 'mascotasUnicas', 'hoy', 'manana', 'pasado'));
     }
 
     /**
@@ -301,6 +310,45 @@ class RecordatorioController extends Controller
         \Cache::forget($cacheKey);
 
         return back()->with('success', 'Estado del recordatorio actualizado correctamente.');
+    }
+
+    /**
+     * Listar los recordatorios de un usuario de forma RESTful
+     */
+    public function indexPorUsuario(User $usuario, Request $request)
+    {
+        $authUser = auth()->user();
+        if ($authUser->id !== $usuario->id && !$authUser->is_admin) {
+            abort(403, 'No tienes permiso para ver los recordatorios de este usuario.');
+        }
+        $mascotaIds = $usuario->mascotas->pluck('id');
+
+        $query = Recordatorio::whereIn('mascota_id', $mascotaIds)
+            ->with('mascota');
+
+        if ($request->filled('mascota')) {
+            $query->whereHas('mascota', function ($q) use ($request) {
+                $q->where('nombre', $request->mascota);
+            });
+        }
+
+        if ($request->filled('titulo')) {
+            $query->where('titulo', 'like', '%' . $request->titulo . '%');
+        }
+        if ($request->filled('fecha')) {
+            $query->whereDate('fecha', '>=', $request->fecha);
+        }
+
+        if ($request->filled('estado')) {
+            $query->where('realizado', $request->estado);
+        }
+
+        $recordatorios = $query->orderBy('realizado')->orderBy('fecha')->paginate(10)->appends($request->except('page'));
+
+        // Mascotas únicas para el dropdown del filtro
+        $mascotasUnicas = $usuario->mascotas->pluck('nombre')->unique()->filter()->values();
+
+        return view('recordatorios.personales', compact('recordatorios', 'usuario', 'mascotasUnicas'));
     }
 
 }

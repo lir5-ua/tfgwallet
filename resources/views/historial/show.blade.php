@@ -44,14 +44,16 @@
                                 {{ ucfirst($historial->descripcion) }}
                             </p>
                         </div>
-                        <p class="mb-6 leading-normal text-sm">{{ $historial->fecha->format('d/m/Y') }}</p>
+                        <p class="mb-6 leading-normal text-sm">
+                            {{ $historial->fecha ? $historial->fecha->format('d/m/Y') : 'Sin fecha' }}
+                        </p>
                         <div class="flex items-center space-x-4 mt-6">
-                            <a href="{{ route('mascotas.historial.edit', [$mascota,$historial]) }}"
+                            <a href="{{ route('mascotas.historial.edit', [$mascota->hashid, $historial->hashid]) }}"
                                class="inline-block px-6 py-3 font-bold text-center bg-blue-500 hover:bg-blue-600 uppercase align-middle transition-all rounded-lg cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
                                 <i class="fas fa-edit mr-2"></i>
                                 Editar
                             </a>
-                            <form action="{{ route('mascotas.historial.destroy', [$mascota,$historial]) }}" method="POST"
+                            <form action="{{ route('mascotas.historial.destroy', [$mascota->hashid, $historial->hashid]) }}" method="POST"
                                   onsubmit="return confirm('¿Estás seguro de que deseas eliminar este recordatorio?');">
                                 @csrf
                                 @method('DELETE')
@@ -60,7 +62,7 @@
                                     Eliminar
                                 </button>
                             </form>
-                            <a href="{{ session('return_to_after_update', route('usuarios.show', auth()->user())) }}"
+                            <a href="{{ route('mascotas.historial.index', $mascota->hashid) }}"
                                class="inline-block px-6 py-3 font-bold text-center bg-gray-500 hover:bg-gray-400 uppercase align-middle transition-all rounded-lg cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
                                 <i class="fas fa-arrow-left mr-2"></i>
                                 Volver
@@ -94,7 +96,9 @@
                                 </div>
                                 <div>
                                     <h6 class="text-sm font-semibold text-slate-700">Fecha</h6>
-                                    <p class="text-sm text-slate-600">{{ $historial->fecha->format('d/m/Y') }}</p>
+                                    <p class="text-sm text-slate-600">
+                                        {{ $historial->fecha ? $historial->fecha->format('d/m/Y') : 'Sin fecha' }}
+                                    </p>
                                 </div>
                             </div>
                         </div>

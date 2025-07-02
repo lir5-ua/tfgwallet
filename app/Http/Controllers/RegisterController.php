@@ -6,12 +6,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Auth\Events\Registered;
 
 class RegisterController extends Controller
 {
 public function showRegistrationForm()
 {
-return view('register');
+    return view('sign-up');
 }
 
 public function register(Request $request)
@@ -29,9 +30,8 @@ $user = User::create([
 'is_admin' => false,
 ]);
 
-Auth::login($user);
+event(new Registered($user));
 
-    return redirect()->route('usuarios.show', auth()->user())->with('success', 'Registro exitoso');
-
+    return redirect()->route('login')->with('success', 'Registro exitoso. Por favor, revisa tu correo para verificar tu cuenta.');
 }
 }

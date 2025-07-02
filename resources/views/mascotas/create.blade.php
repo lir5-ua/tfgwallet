@@ -58,7 +58,7 @@
                             </div>
                         @endif
 
-                        <form action="{{ isset($mascota) ? route('mascotas.update', $mascota->id) : route('mascotas.store') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ isset($mascota) ? route('mascotas.update', $mascota->hashid) : route('mascotas.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @if(isset($mascota))
                                 @method('PUT')
@@ -146,7 +146,7 @@
                                         <input type="number" 
                                                id="user_id" 
                                                name="user_id" 
-                                               value="{{ old('user_id', $mascota->user_id ?? '') }}"
+                                               value="{{ old('user_id', $mascota->user_id ?? auth()->id()) }}"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                                                placeholder="ID del usuario propietario">
                                     </div>

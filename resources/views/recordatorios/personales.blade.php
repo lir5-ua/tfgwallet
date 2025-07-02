@@ -7,7 +7,7 @@
 
 
     <!-- Formulario de búsqueda -->
-    <form method="GET" action="{{ route('recordatorios.personales', ['usuario' => $usuario]) }}" class="flex items-center space-x-2">
+    <form method="GET" action="{{ route('recordatorios.index') }}" class="flex items-center space-x-2">
         <!-- Input de búsqueda con icono -->
         <!-- Botón Crear -->
         <a href="{{ route('recordatorios.create', ['usuario_id' => $usuario->id]) }}"
@@ -15,29 +15,12 @@
             Crear
         </a>
         <!-- Botón Calendario -->
-        <a href="{{ route('recordatorios.calendario', ['usuario' => $usuario->id]) }}"
+        <a href="{{ route('recordatorios.calendario', ['usuario' => $usuario->hashid]) }}"
            class="h-10 px-6 py-2 font-bold text-center bg-gradient-to-tl from-purple-600 to-pink-400 uppercase rounded-lg text-xs text-white flex items-center justify-center">
             📅 Calendario
         </a>
-        <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-slate-500">
-                <i class="fas fa-search"></i>
-            </span>
-            <input type="text"
-                   name="busqueda"
-                   value="{{ request('busqueda') }}"
-                   placeholder="Buscar por nombre"
-                   class="pl-9 pr-3 py-2 text-sm w-64 rounded-lg border border-gray-300 text-gray-700 placeholder:text-gray-500 focus:border-fuchsia-300 focus:outline-none"/>
-        </div>
-
-        <!-- Botón Buscar -->
-        <button type="submit"
-                class="h-10 px-6 py-2 font-bold bg-gradient-to-tl from-red-500 to-yellow-400 uppercase rounded-lg text-xs text-white flex items-center justify-center">
-            Buscar
-        </button>
-
         <!-- Botón Resetear -->
-        <a href="{{ route('recordatorios.personales', ['usuario' => $usuario->id]) }}"
+        <a href="{{ route('recordatorios.index') }}"
            class="h-10 px-6 py-2 font-bold bg-gradient-to-tl from-slate-600 to-slate-300 uppercase rounded-lg text-xs text-white flex items-center justify-center">
             Resetear
         </a>
@@ -61,7 +44,7 @@
                             <th class="px-6 py-3 text-center uppercase text-xxs font-bold text-slate-400 dark:text-white opacity-70 border-b border-gray-200">Acciones</th>
                         </tr>
                         <tr>
-                            <form method="GET" action="{{ route('recordatorios.personales', ['usuario' => $usuario->id]) }}">
+                            <form method="GET" action="{{ route('recordatorios.index') }}">
 
                             <th class="text-center px-6 py-2">
                                     <select name="mascota" class="w-32 text-xs h-8 px-2 py-1 border border-gray-300 rounded dark:bg-slate-600 dark:text-white dark:border-gray-500">
@@ -101,7 +84,7 @@
                         @forelse($recordatorios as $recordatorio)
                         <tr>
                             <td class="p-4 text-center max-w-[200px] align-middle bg-transparent border-b whitespace-nowrap">
-                                    <a href="{{ route('mascotas.show', $recordatorio->mascota->id) }}" class="text-sm block truncate font-semibold text-slate-700 dark:text-white hover:text-blue-500">
+                                    <a href="{{ route('mascotas.show', $recordatorio->mascota->hashid) }}" class="text-sm block truncate font-semibold text-slate-700 dark:text-white hover:text-blue-500">
                                         {{ $recordatorio->mascota->nombre ?? 'Sin mascota' }}
                                     </a>
                             </td>
@@ -155,7 +138,8 @@
                         @endforelse
                         </tbody>
                     </table>
-                    <div class="mt-4 flex justify-center">
+                    <div class="mt-4 flex justify-center flex-col items-center">
+                        <x-pagination-info :paginator="$recordatorios" itemName="recordatorios" />
                         {{ $recordatorios->links() }}
                     </div>
                 </div>
@@ -163,4 +147,10 @@
         </div>
     </div>
 </div>
+@php $user = auth()->user(); @endphp
+@if($user && $user->silenciar_notificaciones_web)
+    <div class="p-4 my-2 rounded-lg bg-gray-200 text-gray-600 text-center">
+        Notificaciones web silenciadas. No se mostrarán recordatorios destacados aquí mientras esta opción esté activa.
+    </div>
+@endif
 @endsection

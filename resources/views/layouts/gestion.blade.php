@@ -31,6 +31,9 @@
 </head>
 
 <body class="bg-white text-black dark:bg-slate-800 dark:text-white bg-gray-50 text-slate-700">
+    @auth
+    @include('layouts.sidebar')
+    @endauth
     <!-- Header específico para sección de gestión -->
     <header class="bg-white dark:bg-slate-700 shadow-soft-xl border-b border-slate-200 dark:border-slate-600">
         <div class="container mx-auto px-6 py-4">
@@ -80,7 +83,7 @@
     </header>
 
     <!-- Contenido principal -->
-    <main class="min-h-screen bg-gray-50 dark:bg-slate-800">
+    <main class="min-h-screen bg-gray-50 dark:bg-slate-800 xl:ml-68.5">
         @yield('content')
     </main>
 

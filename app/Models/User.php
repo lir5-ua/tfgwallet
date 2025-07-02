@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Vinkla\Hashids\Facades\Hashids;
+use App\Notifications\CustomVerifyEmail;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -18,13 +20,15 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'foto',
         'name',
         'email',
         'password',
+        'foto',
+        'notificar_email',
         'is_admin',
         'password',
         'ultima_conexion',
+        'silenciar_notificaciones_web',
     ];
 
     /**
@@ -47,8 +51,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'notificar_email' => 'boolean',
             'ultima_conexion' => 'datetime',
             'is_admin' => 'boolean',
+            'silenciar_notificaciones_web' => 'boolean',
         ];
     }
     public function mascotas()
@@ -59,6 +65,35 @@ class User extends Authenticatable
     public function recordatorios()
     {
         return $this->hasManyThrough(Recordatorio::class, Mascota::class);
+    }
+    public function getRouteKey()
+    {
+        return Hashids::encode($this->getKey());
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'hashid';
+    }
+
+    public function getHashidAttribute()
+    {
+        return Hashids::encode($this->getKey());
+    }
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $decodedId = Hashids::decode($value);
+
+        if (empty($decodedId)) {
+            return null;
+        }
+
+        return $this->where('id', $decodedId[0])->firstOrFail();
+    }
+
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new CustomVerifyEmail);
     }
 
 }

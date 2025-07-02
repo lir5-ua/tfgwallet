@@ -189,14 +189,14 @@ return [
             'enabled' => env('TELESCOPE_QUERY_WATCHER', true),
             'ignore_packages' => true,
             'ignore_paths' => [],
-            'slow' => 100,
+            'slow' => 50,
         ],
 
         Watchers\RedisWatcher::class => env('TELESCOPE_REDIS_WATCHER', true),
 
         Watchers\RequestWatcher::class => [
             'enabled' => env('TELESCOPE_REQUEST_WATCHER', true),
-            'size_limit' => env('TELESCOPE_RESPONSE_SIZE_LIMIT', 64),
+            'size_limit' => env('TELESCOPE_RESPONSE_SIZE_LIMIT', 128),
             'ignore_http_methods' => [],
             'ignore_status_codes' => [],
         ],

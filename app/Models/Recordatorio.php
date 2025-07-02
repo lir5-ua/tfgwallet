@@ -3,8 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Vinkla\Hashids\Facades\Hashids;
+
 class Recordatorio extends Model
+
 {
+
     protected $dates = ['fecha'];
     protected $casts = [
         'fecha' => 'date',
@@ -19,6 +23,20 @@ class Recordatorio extends Model
     public function mascota()
     {
         return $this->belongsTo(Mascota::class);
+    }
+    public function getRouteKey()
+    {
+        return Hashids::encode($this->getKey());
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'hashid';
+    }
+
+    public function getHashidAttribute()
+    {
+        return Hashids::encode($this->getKey());
     }
 
 }

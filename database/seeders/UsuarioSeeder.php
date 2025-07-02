@@ -20,6 +20,7 @@ class UsuarioSeeder extends Seeder
             'password' => bcrypt('123'),
             'is_admin' => true,
             'foto' => 'perroGodlen.jpg',
+            'ultima_conexion' => now(),
         ]);
 
         User::factory()->create([
@@ -28,12 +29,14 @@ class UsuarioSeeder extends Seeder
             'password' => bcrypt('123'),
             'is_admin' => false,
             'foto' => 'perroGodlen.jpg',
+            'ultima_conexion' => now(),
         ]);
 
         // Crear usuarios adicionales con la misma foto
         for ($i = 0; $i < 10; $i++) {
             User::factory()->create([
                 'foto' => 'perroGodlen.jpg',
+                'ultima_conexion' => now(),
             ]);
         }
     }

@@ -45,13 +45,13 @@
             class="relative flex flex-col min-w-0 mb-6 break-words bg-white dark:bg-slate-400 dark:text-white shadow-soft-xl rounded-2xl bg-clip-border">
             <div class="p-6 pb-0 mb-0 bg-white dark:bg-slate-400 rounded-t-2xl">
                 <h6 class="text-lg font-semibold text-slate-700 dark:text-white">
-                    <a href="{{ route('mascotas.historial.index', $mascota) }}" class="hover:underline text-blue-600">
+                    <a href="{{ route('mascotas.historial.index', $mascota->hashid) }}" class="hover:underline text-blue-600">
                         Historial médico
                     </a>
                 </h6>
                 <!-- Botón Crear -->
                 <div class="flex items-center space-x-2">
-                    <a href="{{ route('mascotas.historial.create', $mascota) }}"
+                    <a href="{{ route('mascotas.historial.create', $mascota->hashid) }}"
                     class="h-10 px-6 py-2 font-bold text-center bg-gradient-to-tl from-green-600 to-lime-400 uppercase rounded-lg text-xs text-white flex items-center justify-center">
                     Crear
                 </a>
@@ -79,7 +79,7 @@
                             </th>
                         </tr>
                         <tr>
-                            <form method="GET" action="">
+                            <form method="GET" action="{{ route('mascotas.historial.index', $mascota->hashid) }}">
                                 <th class="text-center px-6 py-2">
                                     <input type="date" name="fecha"
                                            class="w-32 text-xs h-8 px-2 py-1 border border-gray-300 dark:bg-slate-600 dark:border-gray-500 dark:text-white rounded"
@@ -106,7 +106,7 @@
                                             class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg uppercase">
                                         Filtrar
                                     </button>
-                                    <a href="{{ route('mascotas.show', $mascota) }}"
+                                    <a href="{{ route('mascotas.historial.index', $mascota->hashid) }}"
                                        class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-tl from-slate-600 to-slate-300 rounded-lg uppercase">
                                         Resetear
                                     </a>
@@ -135,13 +135,13 @@
                               {{ $h->descripcion }}</span>
                             </td>
                             <td class="p-4 text-center align-middle bg-transparent border-b whitespace-nowrap dark:text-white">
-                                <a href="{{ route('mascotas.historial.show', [$mascota, $h]) }}"
+                            <a href="{{ route('mascotas.historial.show', [$mascota->hashid, $h->hashid]) }}"
                                    class="mr-2 inline-block px-3 py-1 font-bold text-center bg-gradient-to-tl from-green-600 to-lime-400 uppercase align-middle transition-all rounded-md cursor-pointer text-xs ease-soft-in tracking-tight-soft shadow-sm bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
                                     👁️ Ver</a>
-                                <a href="{{ route('mascotas.historial.edit', [$mascota, $h]) }}"
+                                <a href="{{ route('mascotas.historial.edit', [$mascota->hashid, $h->hashid]) }}"
                                    class="mr-2 inline-block px-3 py-1 font-bold text-center bg-gradient-to-tl from-blue-600 to-cyan-400 uppercase align-middle transition-all rounded-md cursor-pointer text-xs ease-soft-in tracking-tight-soft shadow-sm bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
                                     ✏️ Editar</a>
-                                <form action="{{ route('mascotas.historial.destroy', [$mascota, $h]) }}" method="POST" style="display: inline;">
+                                <form action="{{ route('mascotas.historial.destroy', [$mascota->hashid, $h->hashid]) }}" method="POST" style="display: inline;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"
@@ -177,12 +177,12 @@
             class="relative flex flex-col min-w-0 mb-6 break-words bg-white dark:bg-slate-400 dark:text-white shadow-soft-xl rounded-2xl bg-clip-border">
             <div class="p-6 pb-0 mb-0 bg-white dark:bg-slate-400 rounded-t-2xl">
                 <h6 class="text-lg font-semibold text-slate-700 dark:text-white">
-                    <a href="{{ route('recordatorios.personales', ['usuario' => $mascota->usuario, 'mascota' => $mascota->nombre]) }}" class="hover:underline text-blue-600">
+                    <a href="{{ route('recordatorios.index', ['mascota' => $mascota->nombre]) }}" class="hover:underline text-blue-600">
                         Recordatorios
                     </a>
                 </h6>
                 <div class="flex items-center space-x-2">
-                    <a href="{{ route('mascotas.recordatorios.create', $mascota) }}"
+                    <a href="{{ route('mascotas.recordatorios.create', $mascota->hashid) }}"
                        class="h-10 px-6 py-2 font-bold text-center bg-gradient-to-tl from-green-600 to-lime-400 uppercase rounded-lg text-xs text-white flex items-center justify-center">
                         Crear
                     </a>
@@ -209,9 +209,7 @@
                             </th>
                         </tr>
                         <tr>
-                            <form method="GET"
-                                  action="{{ route('recordatorios.personales', ['usuario' => $mascota->usuario]) }}">
-
+                            <form method="GET" action="{{ route('recordatorios.index', ['mascota' => $mascota->nombre]) }}">
                                 <th class="text-center px-6 py-2">
                                     <input type="text" name="titulo"
                                            class="w-32 text-xs h-8 px-2 py-1 border border-gray-300 dark:bg-slate-600 dark:border-gray-500 dark:text-white rounded"

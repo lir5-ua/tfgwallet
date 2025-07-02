@@ -48,39 +48,41 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('recordatorios.store') }}" method="POST">
+                        <form action="{{ isset($mascota) ? route('mascotas.recordatorios.store', ['mascota' => $mascota->hashid]) : route('recordatorios.store') }}" method="POST">
                             @csrf
 
                             <!-- Selección de mascota -->
                             @if ($mascota)
-                                <input type="hidden" name="mascota_id" value="{{ $mascota->id }}">
-                                <div class="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                                    <div class="flex items-center">
-                                        <img src="{{ $mascota->imagen_url }}"
-                                             alt="Foto de mascota" 
-                                             class="w-12 h-12 rounded-lg object-cover mr-3">
-                                        <div>
-                                            <p class="text-sm text-purple-600 font-medium">Mascota seleccionada:</p>
-                                            <p class="text-lg font-semibold text-purple-800">{{ $mascota->nombre }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="mb-4">
-                                    <label for="mascota_id" class="block text-sm font-medium text-slate-700 mb-2">
-                                        Selecciona una mascota *
-                                    </label>
-                                    <select name="mascota_id" 
-                                            id="mascota_id"
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
-                                            required>
-                                        <option value="">-- Selecciona una mascota --</option>
-                                        @foreach ($mascotas as $m)
-                                            <option value="{{ $m->id }}">{{ $m->nombre }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            @endif
+        {{-- **THIS IS THE CRITICAL CHANGE:** Use $mascota->hashid here --}}
+        <input type="hidden" name="mascota_id" value="{{ $mascota->hashid }}"> 
+        <div class="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <div class="flex items-center">
+                <img src="{{ $mascota->imagen_url }}"
+                        alt="Foto de mascota" 
+                        class="w-12 h-12 rounded-lg object-cover mr-3">
+                <div>
+                    <p class="text-sm text-purple-600 font-medium">Mascota seleccionada:</p>
+                    <p class="text-lg font-semibold text-purple-800">{{ $mascota->nombre }}</p>
+                </div>
+            </div>
+        </div>
+    @else
+        <div class="mb-4">
+            <label for="mascota_id" class="block text-sm font-medium text-slate-700 mb-2">
+                Selecciona una mascota *
+            </label>
+            <select name="mascota_id" 
+                    id="mascota_id"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                    required>
+                <option value="">-- Selecciona una mascota --</option>
+                @foreach ($mascotas as $m)
+                    {{-- **AND THIS ONE:** Use $m->hashid here for the dropdown options --}}
+                    <option value="{{ $m->hashid }}">{{ $m->nombre }}</option>
+                @endforeach
+            </select>
+        </div>
+    @endif
 
                             <!-- Título -->
                             <div class="mb-4">
@@ -125,7 +127,7 @@
                             </div>
 
                             <div class="flex justify-end space-x-3">
-                                <a href="{{ session('return_to_after_update', route('usuarios.show', auth()->user())) }}"
+                                <a href="{{ route('recordatorios.index') }}"
                                    class="inline-block px-6 py-3 font-bold text-center bg-gray-500 uppercase align-middle transition-all rounded-lg cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
                                     <i class="fas fa-arrow-left mr-2"></i>
                                     Volver
