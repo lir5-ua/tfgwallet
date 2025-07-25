@@ -16,6 +16,8 @@ use App\Http\Middleware\CheckUltimaConexion;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use App\Http\Controllers\VeterinarioController;
+use App\Http\Controllers\Auth\VeterinarioAuthController;
 
 Route::post('/modo-oscuro', [App\Http\Controllers\TemaController::class, 'toggle'])->name('modo-oscuro.toggle');
 
@@ -158,9 +160,25 @@ Route::get('mascotas/create', [MascotaController::class, 'create'])->name('masco
 Route::post('mascotas', [MascotaController::class, 'store'])->name('mascotas.store');
 Route::get('mascotas/{hashid}', [MascotaController::class, 'show'])->name('mascotas.show');
 Route::get('mascotas/{hashid}/edit', [MascotaController::class, 'edit'])->name('mascotas.edit');
-Route::put('mascotas/{hashid}', [MascotaController::class, 'update'])->name('mascotas.update');
+Route::put('mascotas/{hashid}', [MascotaController::class, 'update'])->name('mascotas.updatee');
 Route::patch('mascotas/{hashid}', [MascotaController::class, 'update']);
 Route::delete('mascotas/{hashid}', [MascotaController::class, 'destroy'])->name('mascotas.destroy');
+Route::post('mascotas/{hashid}/generar-codigo', [MascotaController::class, 'generateAccessCode'])->name('mascotas.generar-codigo');
+
+Route::post('acceso/historial', [HistorialMedicoController::class, 'accederPorCodigo'])->name('acceso.historial');
+Route::get('acceso/historial/form', function() {
+    return view('veterinarios.acceso-codigo');
+})->middleware('auth:veterinarios')->name('acceso.historial.form');
+
+// Rutas para veterinarios
+Route::get('veterinarios', [VeterinarioController::class, 'index'])->name('veterinarios.index');
+Route::post('veterinarios', [VeterinarioController::class, 'store'])->name('veterinarios.store');
+
+// Rutas de autenticación y perfil para veterinarios
+Route::get('veterinarios/login', [VeterinarioAuthController::class, 'showLoginForm'])->name('veterinarios.login');
+Route::post('veterinarios/login', [VeterinarioAuthController::class, 'login'])->name('veterinarios.login.submit');
+Route::post('veterinarios/logout', [VeterinarioAuthController::class, 'logout'])->name('veterinarios.logout');
+Route::get('veterinarios/{veterinario}/perfil', [App\Http\Controllers\VeterinarioController::class, 'show'])->name('veterinarios.perfil');
 
 
 

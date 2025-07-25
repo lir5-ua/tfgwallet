@@ -58,7 +58,7 @@
                             </div>
                         @endif
 
-                        <form action="{{ isset($mascota) ? route('mascotas.update', $mascota->hashid) : route('mascotas.store') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ isset($mascota) ? route('mascotas.updatee', $mascota->hashid) : route('mascotas.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @if(isset($mascota))
                                 @method('PUT')
@@ -141,15 +141,26 @@
                                 @if(auth()->user()->is_admin)
                                     <div class="mb-4">
                                         <label for="user_id" class="block text-sm font-medium text-slate-700 mb-2">
-                                            ID Usuario
+                                            Usuario
                                         </label>
-                                        <input type="number" 
-                                               id="user_id" 
-                                               name="user_id" 
-                                               value="{{ old('user_id', $mascota->user_id ?? auth()->id()) }}"
-                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-800 dark:border-slate-600 dark:text-white"
-                                               placeholder="ID del usuario propietario">
+                                        <select id="user_id" name="user_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-800 dark:border-slate-600 dark:text-white">
+                                            <option value="">-- Selecciona un usuario --</option>
+                                            @foreach($usuariosDisponibles as $usuario)
+                                                <option value="{{ $usuario->id }}" {{ old('user_id', $mascota->user_id ?? '') == $usuario->id ? 'selected' : '' }}>{{ $usuario->name }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
+                                    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+                                    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', function() {
+                                            $('#user_id').select2({
+                                                placeholder: 'Busca un usuario...',
+                                                allowClear: true,
+                                                width: '100%'
+                                            });
+                                        });
+                                    </script>
                                 @else
                                     <input type="hidden" name="user_id" value="{{ auth()->id() }}">
                                 @endif

@@ -3,6 +3,11 @@
 @section('title', 'historialMedico')
 
 @section('content')
+@if(isset($mascota))
+    <h2 class="text-2xl font-bold mb-4 text-center">
+        Historial médico de {{ $mascota->nombre }}
+    </h2>
+@endif
 <div class="flex flex-wrap items-center space-x-4 mb-4">
     <!-- Formulario de filtros avanzado -->
     <form method="GET" action="{{ isset($mascota) && $mascota ? route('mascotas.historial.index', $mascota->hashid) : route('historial.index') }}" class="flex flex-wrap items-end gap-2 bg-gray-50 p-4 rounded-lg shadow">
@@ -75,7 +80,7 @@
                         </td>
                         <td class="p-4 text-center max-w-[200px] align-middle bg-transparent border-b whitespace-nowrap">
                           <span class="text-sm block truncate font-semibold text-slate-700 dark:text-white">
-                              {{ $h->veterinario }}</span>
+                              {{ $h->veterinario ? $h->veterinario->nombre : 'N/A' }}</span>
                         </td>
                         <td class="p-4 text-center max-w-[200px] align-middle bg-transparent border-b whitespace-nowrap">
                           <span class="text-sm block truncate font-semibold text-slate-700 dark:text-white">

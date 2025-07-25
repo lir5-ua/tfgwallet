@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Mascota;
 use App\Models\User;
 use App\Models\Recordatorio;
+use App\Models\AccesoMascota;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 use App\Enums\Especie;
 use App\Enums\Sexo;
@@ -53,11 +56,10 @@ class MascotaController extends Controller
             $orden = 'id';
         }
 
-        // 🐶 CONSULTA BASE - Usando cache del modelo con filtros
+        // 🐶 CONSULTA BASE
         $filters = $request->only(['busqueda', 'especie', 'raza', 'sexo']);
-        $showAll = $user->is_admin && $request->boolean('show_all');
-        if ($showAll) {
-            // Admin quiere ver todas las mascotas
+        if ($user->is_admin) {
+            // Admin ve todas las mascotas
             $query = Mascota::with(['usuario', 'historial' => function($q) {
                 $q->latest()->limit(5);
             }, 'recordatorios' => function($q) {
@@ -81,7 +83,7 @@ class MascotaController extends Controller
                 ->appends($request->all());
             $titulo = 'Todas las mascotas';
         } else {
-            // Usuario normal o admin sin show_all: solo sus mascotas
+            // Usuario normal: solo sus mascotas
             $mascotas = Mascota::getCachedMascotas($user->id, $filters)
                 ->orderBy($orden, $direccion)
                 ->paginate(10)
@@ -101,11 +103,13 @@ class MascotaController extends Controller
         $sexos = Sexo::cases();
         $razasPorEspecie = Especie::todasLasRazasPorEspecie();
         $especies = Especie::labels();
+        $usuariosDisponibles = User::where('is_admin', false)->orderBy('name')->get(['id', 'name']);
 
         return view('mascotas.create', [
             'sexos' => $sexos,
             'razasPorEspecie' => $razasPorEspecie,
             'especies' => $especies,
+            'usuariosDisponibles' => $usuariosDisponibles,
             'mascota' => null, // importante para condicionales en la vista
             'nombreUsuario' => null,
         ]);
@@ -118,6 +122,10 @@ class MascotaController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        if ($user->is_admin) {
+            return redirect()->back()->with('error', 'Los administradores no pueden tener mascotas.');
+        }
         $request->validate([
             'nombre' => 'required|string|max:255',
             'user_id' => 'required|integer|exists:users,id',
@@ -276,5 +284,30 @@ class MascotaController extends Controller
         $mascota = $this->resolveMascota($hashid);
         $mascota->delete();
         return redirect()->route('mascotas.index')->with('success', 'Mascota eliminada.');
+    }
+
+    /**
+     * Genera un código de acceso temporal para la mascota y lo retorna.
+     */
+    public function generateAccessCode($hashid, Request $request)
+    {
+        $mascota = $this->resolveMascota($hashid);
+        $user = auth()->user();
+        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+            abort(403, 'No tienes permiso para generar código para esta mascota.');
+        }
+        // Opcional: invalidar códigos anteriores no usados
+        AccesoMascota::where('mascota_id', $mascota->id)->where('usado', false)->delete();
+        // Generar código único
+        do {
+            $codigo = strtoupper(Str::random(8));
+        } while (AccesoMascota::where('codigo', $codigo)->exists());
+        $acceso = AccesoMascota::create([
+            'mascota_id' => $mascota->id,
+            'codigo' => $codigo,
+            'expires_at' => now()->addMinutes(30), // 30 minutos de validez
+            'usado' => false,
+        ]);
+        return response()->json(['codigo' => $codigo, 'expires_at' => $acceso->expires_at]);
     }
 }

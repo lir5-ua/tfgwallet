@@ -7,6 +7,7 @@ use App\Models\HistorialMedico;
 use Illuminate\Http\Request;
 use App\Enums\TipoHistorial;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Models\AccesoMascota;
 
 class HistorialMedicoController extends Controller
 {
@@ -38,8 +39,11 @@ class HistorialMedicoController extends Controller
     {
         $mascota = $hashid ? $this->resolveMascota($hashid) : null;
         if ($mascota && $mascota->exists) {
-            $user = auth()->user();
-            if ($user->id !== $mascota->user_id && !$user->is_admin) {
+            // Obtener usuario autenticado (puede ser user o veterinario)
+            $user = auth()->user() ?? auth('veterinarios')->user();
+            // Acceso temporal para veterinario
+            $accesoTemporal = session('acceso_mascota_vet_' . $mascota->id . '_' . ($user ? $user->id : 'null'), false);
+            if (!$user || ($user->id !== $mascota->user_id && !($user->is_admin ?? false) && !$accesoTemporal)) {
                 abort(403, 'No tienes permiso para ver el historial de esta mascota.');
             }
             $query = $mascota->historial();
@@ -71,8 +75,13 @@ class HistorialMedicoController extends Controller
     public function create($hashid)
     {
         $mascota = $this->resolveMascota($hashid);
-        $user = auth()->user();
-        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+        $user = auth()->user() ?? auth('veterinarios')->user();
+        $esVeterinario = $user instanceof \App\Models\Veterinario;
+        $tieneAccesoVet = false;
+        if ($esVeterinario) {
+            $tieneAccesoVet = session('acceso_mascota_vet_' . $mascota->id . '_' . $user->id, false);
+        }
+        if (!$user || ($user->id !== $mascota->user_id && !($user->is_admin ?? false) && !$tieneAccesoVet)) {
             abort(403, 'No tienes permiso para crear historial para esta mascota.');
         }
         return view('historial.create', compact('mascota'));
@@ -84,18 +93,29 @@ class HistorialMedicoController extends Controller
     public function store(Request $request, $hashid)
     {
         $mascota = $this->resolveMascota($hashid);
-        $user = auth()->user();
-        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+        $user = auth()->user() ?? auth('veterinarios')->user();
+        $esVeterinario = $user instanceof \App\Models\Veterinario;
+        $tieneAccesoVet = false;
+        if ($esVeterinario) {
+            $tieneAccesoVet = session('acceso_mascota_vet_' . $mascota->id . '_' . $user->id, false);
+        }
+        if (!$user || ($user->id !== $mascota->user_id && !($user->is_admin ?? false) && !$tieneAccesoVet)) {
             abort(403, 'No tienes permiso para añadir historial a esta mascota.');
         }
         $request->validate([
             'fecha' => 'required|date',
             'tipo' => 'required|string',
             'descripcion' => 'required|string',
-            'veterinario' => 'nullable|string'
         ]);
 
-        $mascota->historial()->create($request->all());
+        $data = $request->only(['fecha', 'tipo', 'descripcion']);
+        $data['mascota_id'] = $mascota->id;
+        if ($esVeterinario) {
+            $data['veterinario_id'] = $user->id;
+        } else {
+            $data['veterinario_id'] = null; // O puedes abortar si quieres forzar que siempre haya veterinario
+        }
+        $mascota->historial()->create($data);
 
         return redirect()->route('mascotas.historial.index', $mascota->hashid)->with('success', 'Entrada creada');
     }
@@ -112,8 +132,9 @@ class HistorialMedicoController extends Controller
             abort(404, 'La entrada de historial médico no pertenece a esta mascota.');
         }
 
-        $user = auth()->user();
-        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+        $user = auth()->user() ?? auth('veterinarios')->user();
+        $accesoTemporal = session('acceso_mascota_vet_' . $mascota->id . '_' . ($user ? $user->id : 'null'), false);
+        if (!$user || ($user->id !== $mascota->user_id && !($user->is_admin ?? false) && !$accesoTemporal)) {
             abort(403, 'No tienes permiso para ver el historial de esta mascota.');
         }
 
@@ -127,8 +148,9 @@ class HistorialMedicoController extends Controller
     {
         $mascota = $this->resolveMascota($mascotaHashid);
         $historial = $this->resolveHistorialMedico($historialHashid);
-        $user = auth()->user();
-        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+        $user = auth()->user() ?? auth('veterinarios')->user();
+        $accesoTemporal = session('acceso_mascota_vet_' . $mascota->id . '_' . ($user ? $user->id : 'null'), false);
+        if (!$user || ($user->id !== $mascota->user_id && !($user->is_admin ?? false) && !$accesoTemporal)) {
             abort(403, 'No tienes permiso para editar el historial de esta mascota.');
         }
         session(['return_to_after_update' => url()->previous()]);
@@ -142,18 +164,18 @@ class HistorialMedicoController extends Controller
     {
         $mascota = $this->resolveMascota($mascotaHashid);
         $historial = $this->resolveHistorialMedico($historialHashid);
-        $user = auth()->user();
-        if ($user->id !== $mascota->user_id && !$user->is_admin) {
+        $user = auth()->user() ?? auth('veterinarios')->user();
+        $accesoTemporal = session('acceso_mascota_vet_' . $mascota->id . '_' . ($user ? $user->id : 'null'), false);
+        if (!$user || ($user->id !== $mascota->user_id && !($user->is_admin ?? false) && !$accesoTemporal)) {
             abort(403, 'No tienes permiso para actualizar el historial de esta mascota.');
         }
         $request->validate([
             'fecha' => 'required|date',
             'tipo' => 'required|string',
             'descripcion' => 'required|string',
-            'veterinario' => 'nullable|string'
         ]);
 
-        $historial->update($request->all());
+        $historial->update($request->only(['fecha', 'tipo', 'descripcion']));
 
         return redirect()->route('mascotas.show', $mascotaHashid)->with('success', 'Entrada actualizada');
     }
@@ -171,5 +193,37 @@ class HistorialMedicoController extends Controller
         }
         $historial->delete();
         return redirect()->back()->with('success', 'Entrada historial eliminada.');
+    }
+
+    /**
+     * Permite acceder al historial médico de una mascota mediante un código de acceso.
+     */
+    public function accederPorCodigo(Request $request)
+    {
+        $request->validate([
+            'codigo' => 'required|string',
+        ]);
+        $codigo = strtoupper($request->codigo);
+        $acceso = AccesoMascota::where('codigo', $codigo)
+            ->where('expires_at', '>', now())
+            ->where('usado', false)
+            ->first();
+        if (!$acceso) {
+            return redirect()->back()->with('error_codigo', 'Código inválido o expirado.');
+        }
+        // Verificar que el usuario autenticado es un veterinario
+        $veterinario = auth('veterinarios')->user();
+        if (!$veterinario || !$veterinario instanceof \App\Models\Veterinario) {
+            return redirect()->back()->with('error_codigo', 'Solo los veterinarios pueden usar el código.');
+        }
+        // Registrar el veterinario que usó el código
+        $acceso->veterinario_id = $veterinario->id;
+        $acceso->usado = true;
+        $acceso->save();
+        // Guardar en sesión que este veterinario tiene acceso a esta mascota
+        session(['acceso_mascota_vet_'.$acceso->mascota_id.'_'.$veterinario->id => true]);
+        // Redirigir al historial médico de la mascota (con permisos de edición)
+        $mascota = $acceso->mascota;
+        return redirect()->route('mascotas.historial.index', $mascota->hashid)->with('success', 'Acceso concedido al historial médico como veterinario.');
     }
 }

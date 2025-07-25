@@ -23,15 +23,17 @@ class RecordatorioController extends Controller
     public function index(Request $request)
     {
         $usuario = auth()->user();
-        $mascotaIds = $usuario->mascotas->pluck('id');
-
-        $query = Recordatorio::whereIn('mascota_id', $mascotaIds)
-            ->with('mascota');
+        if ($usuario->is_admin) {
+            // Admin ve todos los recordatorios de todas las mascotas
+            $query = Recordatorio::with('mascota');
+        } else {
+            $mascotaIds = $usuario->mascotas->pluck('id');
+            $query = Recordatorio::whereIn('mascota_id', $mascotaIds)
+                ->with('mascota');
+        }
 
         if ($request->filled('mascota')) {
-            $query->whereHas('mascota', function ($q) use ($request) {
-                $q->where('nombre', $request->mascota);
-            });
+            $query->where('mascota_id', $request->mascota);
         }
 
         if ($request->filled('titulo')) {
@@ -44,12 +46,23 @@ class RecordatorioController extends Controller
             $query->where('realizado', $request->estado);
         }
 
+        // Solo aplicar el filtro por usuario si se ha enviado usuario_id
+        if ($usuario->is_admin && $request->filled('usuario_id')) {
+            $query->whereHas('mascota', function ($q) use ($request) {
+                $q->where('user_id', $request->usuario_id);
+            });
+        }
+
         $recordatorios = $query->orderBy('realizado')->orderBy('fecha')->paginate(10)->appends($request->except('page'));
 
-        $mascotasUnicas = $usuario->mascotas->pluck('nombre')->unique()->filter()->values();
+        // Si el admin filtra por usuario, solo mostrar mascotas de ese usuario
+        if ($usuario->is_admin) {
+            $mascotasUnicas = Mascota::orderBy('nombre')->get(['id', 'nombre']);
+        } else {
+            $mascotasUnicas = $usuario->mascotas()->orderBy('nombre')->get(['id', 'nombre']);
+        }
 
         $hoy = Carbon::today();
-        
         $manana = now()->addDay()->toDateString();
         $pasado = now()->addDays(2)->toDateString();
 
@@ -251,7 +264,23 @@ class RecordatorioController extends Controller
         $manana = now()->addDay()->toDateString();
         $pasado = now()->addDays(2)->toDateString();
 
-        return view('recordatorios.personales', compact('recordatorios', 'usuario', 'mascotasUnicas', 'hoy', 'manana', 'pasado'));
+        $usuariosDisponibles = $usuario->is_admin
+            ? \App\Models\User::orderBy('name')->get(['id', 'name'])
+            : collect();
+
+        // Generar el HTML del select de usuarios para el filtro (solo admin)
+        $selectUsuariosHtml = '';
+        if ($usuario->is_admin) {
+            $selectUsuariosHtml = '<select name="usuario_id" class="w-48 text-xs h-8 px-2 py-1 border border-gray-300 rounded dark:bg-slate-600 dark:text-white dark:border-gray-500">';
+            $selectUsuariosHtml .= '<option value="">Todos los usuarios</option>';
+            foreach ($usuariosDisponibles as $userOption) {
+                $selected = request('usuario_id') == $userOption->id ? 'selected' : '';
+                $selectUsuariosHtml .= '<option value="' . $userOption->id . '" ' . $selected . '>' . e($userOption->name) . '</option>';
+            }
+            $selectUsuariosHtml .= '</select>';
+        }
+
+        return view('recordatorios.personales', compact('recordatorios', 'usuario', 'mascotasUnicas', 'hoy', 'manana', 'pasado', 'usuariosDisponibles', 'selectUsuariosHtml'));
     }
 
     /**

@@ -150,19 +150,32 @@ class OptimizeApp extends Command
     private function compressImage($filePath)
     {
         $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-        
-        if ($extension === 'jpg' || $extension === 'jpeg') {
-            $image = imagecreatefromjpeg($filePath);
+
+        // Validar que el archivo sea una imagen válida antes de procesar
+        $info = @getimagesize($filePath);
+        if (!$info) {
+            $this->warn("El archivo $filePath no es una imagen válida. Se omite.");
+            return;
+        }
+
+        if (($extension === 'jpg' || $extension === 'jpeg') && $info[2] === IMAGETYPE_JPEG) {
+            $image = @imagecreatefromjpeg($filePath);
             if ($image) {
                 imagejpeg($image, $filePath, 85); // Calidad 85%
                 imagedestroy($image);
+            } else {
+                $this->warn("No se pudo procesar $filePath como JPEG. Se omite.");
             }
-        } elseif ($extension === 'png') {
-            $image = imagecreatefrompng($filePath);
+        } elseif ($extension === 'png' && $info[2] === IMAGETYPE_PNG) {
+            $image = @imagecreatefrompng($filePath);
             if ($image) {
                 imagepng($image, $filePath, 6); // Compresión 6
                 imagedestroy($image);
+            } else {
+                $this->warn("No se pudo procesar $filePath como PNG. Se omite.");
             }
+        } else {
+            $this->warn("El archivo $filePath no es un JPEG o PNG válido. Se omite.");
         }
     }
 } 

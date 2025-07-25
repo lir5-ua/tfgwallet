@@ -21,8 +21,8 @@ class MascotaSeeder extends Seeder
     {
         $faker = Faker::create('es_ES');
         
-        // Obtener todos los usuarios disponibles
-        $usuarios = User::all();
+        // Obtener todos los usuarios disponibles que NO son administradores
+        $usuarios = User::where('is_admin', false)->get();
         
         if ($usuarios->isEmpty()) {
             // Si no hay usuarios, crear uno por defecto
@@ -63,14 +63,34 @@ class MascotaSeeder extends Seeder
                         'mascota_id' => $mascota->id,
                     ]);
                 }
-                // 10 entradas médicas
-                for ($k = 0; $k < 10; $k++) {
+                // 10 entradas médicas con descripciones realistas
+                $tipos = ['Vacunación', 'Consulta', 'Desparasitación', 'Cirugía', 'Revisión'];
+                foreach (range(1, 10) as $k) {
+                    $tipo = $faker->randomElement($tipos);
+                    $descripcion = match($tipo) {
+                        'Vacunación' => 'Se administró la vacuna correspondiente. No se observaron reacciones adversas.',
+                        'Consulta' => 'Consulta general. El animal presenta buen estado de salud.',
+                        'Desparasitación' => 'Desparasitación interna y externa realizada con éxito.',
+                        'Cirugía' => 'Intervención quirúrgica realizada sin complicaciones. Se recomienda reposo.',
+                        'Revisión' => 'Revisión rutinaria. No se detectaron anomalías.',
+                        default => $faker->sentence(10),
+                    };
+                    // Obtener un veterinario real o crear uno de prueba
+                    $veterinario = \App\Models\Veterinario::first();
+                    if (!$veterinario) {
+                        $veterinario = \App\Models\Veterinario::create([
+                            'nombre' => 'Veterinario Demo',
+                            'email' => 'vetdemo@example.com',
+                            'numero_colegiado' => 'VET12345',
+                            'password' => bcrypt('123'),
+                        ]);
+                    }
                     HistorialMedico::create([
                         'mascota_id' => $mascota->id,
                         'fecha' => $faker->dateTimeBetween('-2 years', 'now'),
-                        'tipo' => $faker->randomElement(['Vacunación', 'Consulta', 'Desparasitación', 'Cirugía', 'Revisión']),
-                        'descripcion' => $faker->paragraph(2),
-                        'veterinario' => $faker->name,
+                        'tipo' => $tipo,
+                        'descripcion' => $descripcion,
+                        'veterinario_id' => $veterinario->id,
                     ]);
                 }
             }

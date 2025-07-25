@@ -8,8 +8,7 @@
 
     <!-- Formulario de búsqueda -->
     <form method="GET" action="{{ route('recordatorios.index') }}" class="flex items-center space-x-2">
-        <!-- Input de búsqueda con icono -->
-        <!-- Botón Crear -->
+        
         <a href="{{ route('recordatorios.create', ['usuario_id' => $usuario->id]) }}"
            class="h-10 px-6 py-2 font-bold text-center bg-gradient-to-tl from-green-600 to-lime-400 uppercase rounded-lg text-xs text-white flex items-center justify-center">
             Crear
@@ -45,14 +44,14 @@
                         </tr>
                         <tr>
                             <form method="GET" action="{{ route('recordatorios.index') }}">
-
-                            <th class="text-center px-6 py-2">
+                               
+                                <th class="text-center px-6 py-2">
                                     <select name="mascota" class="w-32 text-xs h-8 px-2 py-1 border border-gray-300 rounded dark:bg-slate-600 dark:text-white dark:border-gray-500">
                                         <option value="">Todas</option>
                                         @foreach ($mascotasUnicas as $mascota)
-                                        <option value="{{ $mascota }}" {{ request('mascota') === $mascota ? 'selected' : '' }}>
-                                        {{ $mascota }}
-                                        </option>
+                                            <option value="{{ $mascota->id }}" {{ request('mascota') == $mascota->id ? 'selected' : '' }}>
+                                                {{ $mascota->nombre }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </th>
@@ -84,9 +83,9 @@
                         @forelse($recordatorios as $recordatorio)
                         <tr>
                             <td class="p-4 text-center max-w-[200px] align-middle bg-transparent border-b whitespace-nowrap">
-                                    <a href="{{ route('mascotas.show', $recordatorio->mascota->hashid) }}" class="text-sm block truncate font-semibold text-slate-700 dark:text-white hover:text-blue-500">
-                                        {{ $recordatorio->mascota->nombre ?? 'Sin mascota' }}
-                                    </a>
+                                <a href="{{ route('mascotas.show', $recordatorio->mascota->hashid) }}" class="text-sm block truncate font-semibold text-slate-700 dark:text-white hover:text-blue-500">
+                                    {{ $recordatorio->mascota->nombre ?? 'Sin mascota' }}
+                                </a>
                             </td>
                             <td class="p-4 text-center max-w-[200px] align-middle bg-transparent border-b whitespace-nowrap">
                                 <span class="text-sm block truncate text-slate-600 dark:text-white">{{ $recordatorio->titulo }}</span>

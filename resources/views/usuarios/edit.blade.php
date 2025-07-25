@@ -50,19 +50,12 @@
                     </div>
                     
                     <div class="flex-auto p-6">
-                        @if ($errors->any())
-                            <div class="mb-6 p-4 bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 text-red-700 rounded-lg shadow-soft-sm">
-                                <div class="flex items-center">
-                                    <i class="fas fa-exclamation-triangle mr-3 text-red-500"></i>
-                                    <div>
-                                        <h6 class="font-semibold">Se encontraron errores:</h6>
-                                        <ul class="list-disc list-inside mt-2 text-sm">
-                                            @foreach ($errors->all() as $error)
-                                                <li>{{ $error }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                </div>
+                        @if(session('error'))
+                            <div id="alert-error" class="w-full p-4 mb-4 text-white rounded-lg bg-red-600 flex justify-between items-center">
+                                <span>{{ session('error') }}</span>
+                                <button onclick="document.getElementById('alert-error').remove()"
+                                        class="ml-4 text-white hover:text-black font-bold text-lg leading-none">&times;
+                                </button>
                             </div>
                         @endif
 

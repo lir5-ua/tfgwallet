@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             MascotaSeeder::class,
             HistorialMedicoSeeder::class,
             AsignarFotosSeeder::class,
+            VeterinarioSeeder::class,
         ]);
 
     }

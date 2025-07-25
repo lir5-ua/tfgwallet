@@ -10,6 +10,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('recordatorios:enviar')->dailyAt('08:00');
+        $schedule->command('optimize --optimize')->dailyAt('03:00');
     }
 
 

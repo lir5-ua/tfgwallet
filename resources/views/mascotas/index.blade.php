@@ -11,7 +11,8 @@
     <div class="p-4 my-2 rounded-lg bg-gray-200 text-gray-600 text-center">
         Notificaciones web silenciadas. No se mostrarán recordatorios destacados aquí mientras esta opción esté activa.
     </div>
-@elseif(isset($recordatorios) && $recordatorios->isNotEmpty())
+@endif
+@if(isset($recordatorios) && $recordatorios->isNotEmpty())
     @php
         // Ensure $hoy is a date string for consistent comparison
         $hoyString = $hoy->toDateString();
@@ -96,6 +97,20 @@
     @endif
 @endif
 
+<div class="max-w-md mx-auto my-6 p-4 bg-white dark:bg-slate-500 rounded shadow">
+    <form method="POST" action="{{ route('acceso.historial') }}">
+        @csrf
+        <label for="codigo" class="block text-sm font-bold mb-2">Acceso por código:</label>
+        <div class="flex">
+            <input type="text" name="codigo" id="codigo" class="w-full px-3 py-2 border rounded-l" placeholder="Introduce el código..." required>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-r">Acceder</button>
+        </div>
+        @if(session('error_codigo'))
+            <div class="text-red-600 mt-2">{{ session('error_codigo') }}</div>
+        @endif
+    </form>
+</div>
+
 <div class="container dark:bg-slate-800 dark:text-white">
     <h1 class="text-2xl font-bold dark:text-white">{{ $titulo }}</h1>
 
@@ -109,19 +124,19 @@
     </div>
     @endif
 
+    @if(session('error'))
+    <div id="alert-error" class="w-full p-4 mb-4 text-white rounded-lg bg-red-600 flex justify-between items-center">
+        <span>{{ session('error') }}</span>
+        <button onclick="document.getElementById('alert-error').remove()"
+                class="ml-4 text-white hover:text-black font-bold text-lg leading-none">&times;
+        </button>
+    </div>
+@endif
+
     <div class="flex flex-wrap items-center space-x-4 mb-4">
 
         @if($user && $user->is_admin)
-            <form method="GET" action="{{ route('mascotas.index') }}" class="flex items-center space-x-2 mr-4">
-                <input type="hidden" name="busqueda" value="{{ request('busqueda') }}">
-                <input type="hidden" name="especie" value="{{ request('especie') }}">
-                <input type="hidden" name="raza" value="{{ request('raza') }}">
-                <input type="hidden" name="sexo" value="{{ request('sexo') }}">
-                <label class="flex items-center cursor-pointer">
-                    <input type="checkbox" name="show_all" value="1" onchange="this.form.submit()" {{ request('show_all') ? 'checked' : '' }}>
-                    <span class="ml-2 text-sm">Ver todas las mascotas</span>
-                </label>
-            </form>
+            <!-- Eliminado el checkbox 'ver todas las mascotas' -->
         @endif
 
         <!-- Formulario de búsqueda -->

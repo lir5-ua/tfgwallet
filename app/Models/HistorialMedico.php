@@ -10,7 +10,7 @@ class HistorialMedico extends Model
 {
     use HasFactory;
      protected $fillable = [
-            'mascota_id', 'fecha', 'tipo', 'descripcion', 'veterinario'
+            'mascota_id', 'fecha', 'tipo', 'descripcion', 'veterinario_id'
         ];
 
         public function mascota()

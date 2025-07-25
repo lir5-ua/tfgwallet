@@ -310,4 +310,38 @@
 
     <a href="{{ route('mascotas.index') }}">← Volver al listado</a>
 </div>
+<div class="flex items-center space-x-2 mt-4">
+    <button id="btn-generar-codigo" class="h-10 px-6 py-2 font-bold text-center bg-gradient-to-tl from-purple-600 to-indigo-400 uppercase rounded-lg text-xs text-white flex items-center justify-center">
+        Generar código de acceso
+    </button>
+    <span id="codigo-acceso" class="ml-4 text-green-700 font-mono font-bold"></span>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('btn-generar-codigo');
+        const codigoSpan = document.getElementById('codigo-acceso');
+        btn.addEventListener('click', function() {
+            btn.disabled = true;
+            btn.textContent = 'Generando...';
+            fetch(`{{ route('mascotas.generar-codigo', $mascota->hashid) }}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                codigoSpan.textContent = 'Código: ' + data.codigo + ' (válido hasta: ' + data.expires_at + ')';
+                btn.textContent = 'Generar código de acceso';
+                btn.disabled = false;
+            })
+            .catch(() => {
+                codigoSpan.textContent = 'Error al generar el código.';
+                btn.textContent = 'Generar código de acceso';
+                btn.disabled = false;
+            });
+        });
+    });
+</script>
 @endsection

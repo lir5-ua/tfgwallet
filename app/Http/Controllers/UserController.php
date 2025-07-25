@@ -140,6 +140,12 @@ class UserController extends Controller
             'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
+        // Si se intenta marcar como admin y tiene mascotas, error
+        $quiereSerAdmin = $request->has('esAdmin');
+        if ($quiereSerAdmin && $usuario->mascotas()->count() > 0) {
+            return redirect()->back()->with('error', 'No se puede designar como administrador a un usuario que tiene mascotas registradas.');
+        }
+
         $usuario->name = $request->name;
         $usuario->email = $request->email;
         if ($request->hasFile('foto')) {
@@ -150,8 +156,7 @@ class UserController extends Controller
         $usuario->notificar_email = $request->has('notificar_email');
         $usuario->save();
 
-        return redirect(session('previous_url', route('usuarios.show', $usuario)))
-            ->with('success', 'Perfil actualizado.');
+        return redirect()->route('usuarios.show', $usuario)->with('success', 'Perfil actualizado.');
     }
 
     public function destroy(User $usuario)
@@ -169,7 +174,10 @@ class UserController extends Controller
         $user = Auth::user();
         $user->silenciar_notificaciones_web = !$user->silenciar_notificaciones_web;
         $user->save();
-        return back()->with('success', $user->silenciar_notificaciones_web ? 'Notificaciones web silenciadas.' : 'Notificaciones web activadas.');
+        if ($user->silenciar_notificaciones_web) {
+            return back()->with('notificaciones_silenciadas', true);
+        }
+        return back()->with('success', 'Notificaciones web activadas.');
     }
 
 }

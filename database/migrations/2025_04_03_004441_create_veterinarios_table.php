@@ -11,28 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('veterinarios', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('nombre');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('numero_colegiado')->unique();
             $table->string('password');
-            $table->string('foto')->nullable();
-            $table->boolean('is_admin')->default(false);
-            $table->boolean('silenciar_notificaciones_web')->default(false);
-            $table->boolean('notificar_email')->default(false);
+            $table->string('telefono')->nullable();
+            $table->string('direccion')->nullable();
             $table->rememberToken();
             $table->timestamps();
-            $table->timestamp('ultima_conexion')->nullable();
         });
     }
-
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('veterinarios');
     }
 };

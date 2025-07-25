@@ -88,12 +88,25 @@
                                 <label for="veterinario" class="block text-sm font-medium text-slate-700 mb-2">
                                     Veterinario
                                 </label>
-                                <input type="text" 
-                                       id="veterinario" 
-                                       name="veterinario" 
-                                       value="{{ old('veterinario') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                       placeholder="Nombre del veterinario">
+                                @php
+                                    $user = auth()->user() ?? auth('veterinarios')->user();
+                                    $esVeterinario = $user instanceof \App\Models\Veterinario;
+                                @endphp
+                                @if ($esVeterinario)
+                                    <input type="text"
+                                           id="veterinario"
+                                           name="veterinario"
+                                           value="{{ $user->nombre }}"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-100"
+                                           readonly>
+                                @else
+                                    <input type="text"
+                                           id="veterinario"
+                                           name="veterinario"
+                                           value="{{ old('veterinario') }}"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                           placeholder="Nombre del veterinario">
+                                @endif
                             </div>
 
                             <div class="mb-6">
@@ -109,7 +122,11 @@
                             </div>
 
                             <div class="flex justify-end space-x-3">
-                                <a href="{{ session('return_to_after_update', route('usuarios.show', auth()->user())) }}"
+                                @php
+                                    $user = auth()->user() ?? auth('veterinarios')->user();
+                                    $esVeterinario = $user instanceof \App\Models\Veterinario;
+                                @endphp
+                                <a href="{{ $esVeterinario ? route('mascotas.historial.index', $mascota->hashid) : route('usuarios.show', $mascota->usuario->hashid) }}"
                                    class="inline-block px-6 py-3 font-bold text-center bg-gray-500 uppercase align-middle transition-all rounded-lg cursor-pointer leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:shadow-soft-xs text-white">
                                     <i class="fas fa-arrow-left mr-2"></i>
                                     Volver

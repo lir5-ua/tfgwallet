@@ -11,18 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('historial_medicos', function (Blueprint $table) {
+        Schema::create('acceso_mascotas', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('mascota_id');
-            $table->date('fecha');
-            $table->string('tipo'); // Vacuna, revisión, cirugía...
-            $table->text('descripcion');
-            $table->unsignedBigInteger('veterinario_id');
+            $table->unsignedBigInteger('veterinario_id')->nullable();
+            $table->string('codigo', 16)->unique();
+            $table->timestamp('expires_at')->nullable();
+            $table->boolean('usado')->default(false);
             $table->timestamps();
 
-
             $table->foreign('mascota_id')->references('id')->on('mascotas')->onDelete('cascade');
-            $table->foreign('veterinario_id')->references('id')->on('veterinarios')->onDelete('cascade');
+            $table->foreign('veterinario_id')->references('id')->on('veterinarios')->onDelete('set null');
         });
     }
 
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('historial_medico');
+        Schema::dropIfExists('acceso_mascotas');
     }
 };

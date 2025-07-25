@@ -180,9 +180,21 @@
                             </li>
                         </ul>
                     @else
-                        <div class="absolute right-0 top-12 z-50 bg-white text-slate-500 rounded-lg shadow-lg px-4 py-2 text-sm border border-gray-200">
-                            Notificaciones web silenciadas
-                        </div>
+                        @if(session('notificaciones_silenciadas'))
+                            <div id="alert-navbar-silenciar" class="absolute right-0 top-12 z-50 bg-white text-slate-500 rounded-lg shadow-lg px-4 py-2 text-sm border border-gray-200">
+                                Notificaciones web silenciadas
+                            </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const alert = document.getElementById('alert-navbar-silenciar');
+                                    if(alert) {
+                                        setTimeout(() => {
+                                            alert.remove();
+                                        }, 3000);
+                                    }
+                                });
+                            </script>
+                        @endif
                     @endif
                 </li>
             </ul>

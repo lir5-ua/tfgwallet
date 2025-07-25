@@ -44,7 +44,8 @@
           <nav class="absolute top-0 left-0 right-0 z-30 flex flex-wrap items-center px-4 py-2 mx-6 my-4 shadow-soft-2xl rounded-blur bg-white/80 backdrop-blur-2xl backdrop-saturate-200 lg:flex-nowrap lg:justify-start">
             <div class="flex items-center justify-between w-full p-0 pl-6 mx-auto flex-wrap-inherit">
               <div class="container flex items-center justify-center py-0 flex-wrap-inherit">
-                <a class="py-2.375 text-sm mr-4 ml-4 whitespace-nowrap font-bold text-slate-700 lg:ml-0 text-center w-full" href="/">PetWallet</a>
+                <a class="py-2.375 text-sm mr-4 ml-4 whitespace-nowrap font-bold text-slate-700 lg:ml-0 text-center" href="/">PetWallet</a>
+                <a class="py-2.375 text-sm ml-4 whitespace-nowrap font-bold text-blue-600 hover:underline text-center" href="{{ route('veterinarios.login') }}">VeterinarioWallet</a>
               </div>
               <button navbar-trigger class="px-3 py-1 ml-2 leading-none transition-all bg-transparent border border-transparent border-solid rounded-lg shadow-none cursor-pointer text-lg ease-soft-in-out lg:hidden" type="button" aria-controls="navigation" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="inline-block mt-2 align-middle bg-center bg-no-repeat bg-cover w-6 h-6 bg-none">
