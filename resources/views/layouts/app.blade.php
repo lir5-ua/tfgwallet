@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/png" href="/storage/petwallet.png" />
 
     <title>@yield('title', 'PetWallet')</title>
@@ -35,12 +36,12 @@
 <body class="bg-white text-black dark:bg-slate-800 dark:text-white bg-gray-50 text-slate-700">
 <main class="ease-soft-in-out xl:ml-68.5 relative h-full max-h-screen rounded-xl transition-all duration-200">
     <!-- Sidebar -->
-    @auth
+    @if(\App\Helpers\AuthHelper::isAuthenticated())
     @if (Route::currentRouteName() !== 'register')
     @include('layouts.sidebar')
     @include('layouts.navbar')
     @endif
-    @endauth
+    @endif
     
     <!-- Contenido principal -->
     @yield('content')

@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -25,13 +26,17 @@ class AuthController extends Controller
                 'name' => 'Tu cuenta no está verificada. Por favor, revisa tu correo electrónico para el enlace de verificación.',
             ])->onlyInput('name');
         }
+        
         if (Auth::attempt($credentials)) {
+            // Configurar sesión específica para usuarios web
+            $this->configureWebSession($request, $user);
+            
             $request->session()->regenerate();
             $authenticatedUser = Auth::user();
-            $authenticatedUser->ultima_conexion = now(); // Actualiza a la hora actual del login
+            $authenticatedUser->ultima_conexion = now();
             $authenticatedUser->save();
 
-            return redirect()->route('usuarios.show', $authenticatedUser); // Redirige al usuario autenticado.
+            return redirect()->route('usuarios.show', $authenticatedUser);
         }
         
         return back()->withErrors([
@@ -41,11 +46,35 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        // Limpiar sesión específica de usuarios web
+        $this->clearWebSession($request);
+        
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect('/login');
+    }
+
+    /**
+     * Configurar sesión específica para usuarios web
+     */
+    private function configureWebSession(Request $request, User $user): void
+    {
+        // Guardar datos del usuario en la sesión específica
+        Session::put('user_id', $user->id);
+        
+        // Configurar cookie de sesión específica para usuarios web
+        $request->session()->put('guard', 'web');
+    }
+
+    /**
+     * Limpiar sesión específica de usuarios web
+     */
+    private function clearWebSession(Request $request): void
+    {
+        Session::forget('user_id');
+        Session::forget('guard');
     }
 }

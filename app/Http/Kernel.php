@@ -15,6 +15,7 @@ class Kernel extends HttpKernel
      */
     protected $middleware = [
         \App\Http\Middleware\PerformanceMonitor::class,
+        \App\Http\Middleware\SeparateSessionGuard::class,
         // Otros middlewares globales de Laravel pueden ir aquí
     ];
 

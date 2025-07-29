@@ -86,18 +86,19 @@
 
                 <li class="relative flex items-center pr-2">
                     <p class="hidden transform-dropdown-show"></p>
-                    <form method="POST" action="{{ route('usuarios.toggle-web-notifications') }}" id="toggle-web-notifications-form">
-                        @csrf
-                        <button type="submit" class="block p-0 transition-all text-sm ease-nav-brand text-slate-500 focus:outline-none" title="@if(Auth::user()->silenciar_notificaciones_web) Activar notificaciones web @else Silenciar notificaciones web @endif">
-                            @if(Auth::user()->silenciar_notificaciones_web)
-                                <i class="cursor-pointer fa fa-bell-slash text-red-500"></i>
-                            @else
-                                <i class="cursor-pointer fa fa-bell"></i>
-                            @endif
-                        </button>
-                    </form>
+                    @if(\App\Helpers\AuthHelper::isUser())
+                        <form method="POST" action="{{ route('usuarios.toggle-web-notifications') }}" id="toggle-web-notifications-form">
+                            @csrf
+                            <button type="submit" class="block p-0 transition-all text-sm ease-nav-brand text-slate-500 focus:outline-none" title="@if(\App\Helpers\AuthHelper::getCurrentUser()->silenciar_notificaciones_web) Activar notificaciones web @else Silenciar notificaciones web @endif">
+                                @if(\App\Helpers\AuthHelper::getCurrentUser()->silenciar_notificaciones_web)
+                                    <i class="cursor-pointer fa fa-bell-slash text-red-500"></i>
+                                @else
+                                    <i class="cursor-pointer fa fa-bell"></i>
+                                @endif
+                            </button>
+                        </form>
 
-                    @if(!Auth::user()->silenciar_notificaciones_web)
+                        @if(!\App\Helpers\AuthHelper::getCurrentUser()->silenciar_notificaciones_web)
                         <ul dropdown-menu
                             class="text-sm transform-dropdown before:font-awesome before:leading-default before:duration-350 before:ease-soft lg:shadow-soft-3xl duration-250 min-w-44 before:sm:right-7.5 before:text-5.5 pointer-events-none absolute right-0 top-0 z-50 origin-top list-none rounded-lg border-0 border-solid border-transparent bg-white bg-clip-padding px-2 py-4 text-left text-slate-500 opacity-0 transition-all before:absolute before:right-2 before:left-auto before:top-0 before:z-50 before:inline-block before:font-normal before:text-white before:antialiased before:transition-all before:content-['\f0d8'] sm:-mr-6 lg:absolute lg:right-0 lg:left-auto lg:mt-2 lg:block lg:cursor-pointer">
                             <!-- add show class on dropdown open js -->
@@ -179,21 +180,6 @@
                                 </a>
                             </li>
                         </ul>
-                    @else
-                        @if(session('notificaciones_silenciadas'))
-                            <div id="alert-navbar-silenciar" class="absolute right-0 top-12 z-50 bg-white text-slate-500 rounded-lg shadow-lg px-4 py-2 text-sm border border-gray-200">
-                                Notificaciones web silenciadas
-                            </div>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    const alert = document.getElementById('alert-navbar-silenciar');
-                                    if(alert) {
-                                        setTimeout(() => {
-                                            alert.remove();
-                                        }, 3000);
-                                    }
-                                });
-                            </script>
                         @endif
                     @endif
                 </li>
@@ -201,3 +187,14 @@
         </div>
     </div>
 </nav>
+
+<!-- Formulario de logout dinámico -->
+@if(\App\Helpers\AuthHelper::isVeterinario())
+    <form id="logout-form" action="{{ route('veterinarios.logout') }}" method="POST" class="hidden">
+        @csrf
+    </form>
+@elseif(\App\Helpers\AuthHelper::isUser())
+    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+        @csrf
+    </form>
+@endif

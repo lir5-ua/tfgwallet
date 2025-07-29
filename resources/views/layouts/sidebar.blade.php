@@ -54,7 +54,7 @@
             @endif
 
             {{-- Mascotas: veterinario ve acceso por código, resto ve listado normal --}}
-            @if(auth()->guard('veterinarios')->check())
+            @if(\App\Helpers\AuthHelper::isVeterinario())
                 <li class="mt-0.5 w-full">
                     <a href="{{ route('acceso.historial.form') }}"
                        class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors
@@ -81,7 +81,7 @@
                         <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Mascotas</span>
                     </a>
                 </li>
-            @elseif(Auth::check())
+            @elseif(\App\Helpers\AuthHelper::isUser())
                 <li class="mt-0.5 w-full">
                     <a href="{{ route('mascotas.index') }}"
                        class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors
@@ -110,7 +110,7 @@
                 </li>
             @endif
 
-
+            @if(!\App\Helpers\AuthHelper::isVeterinario())
             <li class="mt-0.5 w-full">
                 @php
                 $user = $usuario ?? auth()->user();
@@ -162,17 +162,79 @@
                     </div>
                     <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Calendario</span>
                 </a>
-            </li>
+                            </li>
+            @endif
+
+            {{-- Sección de citas solo para veterinarios --}}
+            @if(\App\Helpers\AuthHelper::isVeterinario())
+                <li class="mt-0.5 w-full">
+                    <a href="{{ route('citas.create') }}"
+                       class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors
+{{ request()->routeIs('citas.create') ? 'bg-white font-semibold text-slate-700 rounded-lg shadow-soft-xl' : 'text-slate-500' }}">
+                        <div
+                            class="{{ request()->routeIs('citas.create') ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : 'bg-white' }} shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                            <svg width="12px" height="12px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 2V5" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 2V5" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M3 7H21" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 11H8" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 15H8" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 19H8" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 11L19 14L16 17" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Crear Cita</span>
+                    </a>
+                </li>
+
+                <li class="mt-0.5 w-full">
+                    @php
+                        $veterinario = \App\Helpers\AuthHelper::getCurrentUser();
+                    @endphp
+                    <a href="{{ route('veterinarios.calendario', $veterinario->hashid) }}"
+                       class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors
+{{ request()->routeIs('veterinarios.calendario') ? 'bg-white font-semibold text-slate-700 rounded-lg shadow-soft-xl' : 'text-slate-500' }}">
+                        <div
+                            class="{{ request()->routeIs('veterinarios.calendario') ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : 'bg-white' }} shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                            <svg width="12px" height="12px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 2V5" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 2V5" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M3 7H21" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 11H8" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 15H8" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10 19H8" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Mi Calendario</span>
+                    </a>
+                </li>
+
+                <li class="mt-0.5 w-full">
+                    <a href="{{ route('veterinarios.usuarios', $veterinario->hashid) }}"
+                       class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors
+{{ request()->routeIs('veterinarios.usuarios') ? 'bg-white font-semibold text-slate-700 rounded-lg shadow-soft-xl' : 'text-slate-500' }}">
+                        <div
+                            class="{{ request()->routeIs('veterinarios.usuarios') ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : 'bg-white' }} shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
+                            <svg width="12px" height="12px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Mis Clientes</span>
+                    </a>
+                </li>
+            @endif
 
             <li class="w-full mt-4">
                 <h6 class="pl-6 ml-2 text-xs font-bold leading-tight uppercase opacity-60">Account pages</h6>
             </li>
 
-            @if(auth()->guard('veterinarios')->check())
+            @if(\App\Helpers\AuthHelper::isVeterinario())
                 <li class="mt-0.5 w-full">
                     @php
                         $isPerfilActive = request()->routeIs('veterinarios.perfil') || (str_contains(request()->path(), 'veterinarios') && str_contains(request()->path(), 'perfil'));
-                        $veterinario = auth()->guard('veterinarios')->user();
+                        $veterinario = \App\Helpers\AuthHelper::getCurrentUser();
                     @endphp
                     <a href="{{ route('veterinarios.perfil', $veterinario->hashid) }}"
                        class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors {{ $isPerfilActive ? 'bg-white font-semibold text-slate-700 rounded-lg shadow-soft-xl' : 'text-slate-500' }}">
@@ -232,7 +294,7 @@
             @else
             <li class="mt-0.5 w-full">
                 <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors"
-                    href="{{ route('usuarios.show', Auth::user()) }}">
+                    href="{{ route('usuarios.show', \App\Helpers\AuthHelper::getCurrentUser()) }}">
                     <div
                         class="{{ request()->routeIs('usuarios.show') ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : 'bg-white' }} shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
                         <svg width="12px" height="12px" viewBox="0 0 46 42" version="1.1"

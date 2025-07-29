@@ -304,8 +304,9 @@ class RecordatorioController extends Controller
             $query->where('realizado', $request->estado);
         }
 
-        // Obtener recordatorios de todo el año actual para el calendario
-        $recordatorios = $query->whereYear('fecha', now()->year)
+        // Obtener recordatorios de todo el año actual para el calendario (excluyendo citas)
+        $recordatorios = $query->where('es_cita', false)
+            ->whereYear('fecha', now()->year)
             ->orderBy('fecha')
             ->get();
 
@@ -316,22 +317,60 @@ class RecordatorioController extends Controller
             ->orderBy('fecha')
             ->get();
 
-        return view('recordatorios.calendario', compact('recordatorios', 'historialMedico', 'usuario'));
+        // Obtener citas (recordatorios con es_cita = true)
+        $citas = Recordatorio::whereIn('mascota_id', $mascotaIds)
+            ->where('es_cita', true)
+            ->with('mascota')
+            ->whereYear('fecha', now()->year)
+            ->orderBy('fecha')
+            ->get();
+
+        return view('recordatorios.calendario', compact('recordatorios', 'historialMedico', 'citas', 'usuario'));
     }
 
     /**
      * Cambia el estado de realizado/pendiente del recordatorio si la fecha es hoy o futura
      */
-    public function cambiarEstado(Request $request, Recordatorio $recordatorio)
+    public function cambiarEstado(Request $request, $hashid)
     {
+        \Log::info('cambiarEstado llamado', [
+            'hashid' => $hashid,
+            'request_data' => $request->all()
+        ]);
+        
+        $recordatorio = $this->resolveRecordatorio($hashid);
+        
+        \Log::info('Recordatorio encontrado', [
+            'recordatorio_id' => $recordatorio->id,
+            'titulo' => $recordatorio->titulo,
+            'estado_actual' => $recordatorio->realizado,
+            'fecha' => $recordatorio->fecha
+        ]);
+        
+        // Verificar permisos
+        $authUser = auth()->user();
+        if ($authUser->id !== $recordatorio->mascota->user_id && !$authUser->is_admin) {
+            abort(403, 'No tienes permiso para modificar este recordatorio.');
+        }
+        
         if ($recordatorio->fecha->isPast() && !$recordatorio->fecha->isToday()) {
             return back()->with('error', 'No se puede modificar el estado de un recordatorio cuya fecha es anterior a hoy.');
         }
 
         $nuevoEstado = (bool) $request->input('nuevo_estado');
-        $recordatorio->visto = $nuevoEstado;
+        
+        \Log::info('Actualizando estado', [
+            'estado_anterior' => $recordatorio->realizado,
+            'nuevo_estado' => $nuevoEstado
+        ]);
+        
         $recordatorio->realizado = $nuevoEstado;
         $recordatorio->save();
+
+        \Log::info('Estado actualizado', [
+            'estado_final' => $recordatorio->realizado,
+            'guardado' => $recordatorio->wasRecentlyCreated ? 'nuevo' : 'actualizado'
+        ]);
 
         // Limpiar la caché de recordatorios del perfil si corresponde
         $usuarioId = $recordatorio->mascota->user_id;

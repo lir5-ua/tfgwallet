@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Http\Controllers\VeterinarioController;
 use App\Http\Controllers\Auth\VeterinarioAuthController;
+use App\Http\Controllers\CitaController;
 
 Route::post('/modo-oscuro', [App\Http\Controllers\TemaController::class, 'toggle'])->name('modo-oscuro.toggle');
 
@@ -179,6 +180,23 @@ Route::get('veterinarios/login', [VeterinarioAuthController::class, 'showLoginFo
 Route::post('veterinarios/login', [VeterinarioAuthController::class, 'login'])->name('veterinarios.login.submit');
 Route::post('veterinarios/logout', [VeterinarioAuthController::class, 'logout'])->name('veterinarios.logout');
 Route::get('veterinarios/{veterinario}/perfil', [App\Http\Controllers\VeterinarioController::class, 'show'])->name('veterinarios.perfil');
+
+// Rutas para citas de veterinarios
+Route::middleware('auth:veterinarios')->group(function () {
+    Route::get('citas/create', [App\Http\Controllers\CitaController::class, 'create'])->name('citas.create');
+    Route::post('citas', [App\Http\Controllers\CitaController::class, 'store'])->name('citas.store');
+    Route::get('citas/{hashid}/edit', [App\Http\Controllers\CitaController::class, 'edit'])->name('citas.edit');
+    Route::put('citas/{hashid}', [App\Http\Controllers\CitaController::class, 'update'])->name('citas.update');
+    Route::post('citas/buscar-mascota', [App\Http\Controllers\CitaController::class, 'buscarMascotaPorCodigo'])->name('citas.buscar-mascota');
+    Route::post('citas/obtener-mascotas', [App\Http\Controllers\CitaController::class, 'obtenerMascotasUsuario'])->name('citas.obtener-mascotas');
+    
+    // Ruta para el calendario del veterinario
+    Route::get('veterinarios/{veterinario}/calendario', [App\Http\Controllers\VeterinarioController::class, 'calendario'])->name('veterinarios.calendario');
+    
+    // Rutas para usuarios y mascotas del veterinario
+    Route::get('veterinarios/{veterinario}/usuarios', [App\Http\Controllers\VeterinarioController::class, 'usuarios'])->name('veterinarios.usuarios');
+    Route::get('veterinarios/{veterinario}/usuarios/{usuarioHashid}/mascotas', [App\Http\Controllers\VeterinarioController::class, 'mascotasUsuario'])->name('veterinarios.mascotas-usuario');
+});
 
 
 

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Calendario de Recordatorios')
+@section('title', 'Mi Calendario - Veterinario')
 
 @push('styles')
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
@@ -19,10 +19,6 @@
     .fc-event-no-completado {
         background-color: #ef4444 !important;
         border-color: #dc2626 !important;
-    }
-    .fc-event-historial {
-        background-color: #3b82f6 !important;
-        border-color: #2563eb !important;
     }
     .fc-event-cita {
         background-color: #f59e0b !important;
@@ -67,48 +63,25 @@
         <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white dark:bg-slate-400 dark:text-white shadow-soft-xl rounded-2xl bg-clip-border">
             <div class="p-6 pb-0 mb-0 bg-white dark:bg-slate-400 dark:text-white rounded-t-2xl">
                 <div class="flex justify-between items-center">
-                    <h6 class="text-lg font-semibold text-slate-700 dark:text-white">Calendario de Recordatorios</h6>
-                    <a href="{{ route('recordatorios.create', ['usuario_id' => $usuario->id]) }}"
-                       class="h-10 px-6 py-2 font-bold text-center bg-gradient-to-tl from-green-600 to-lime-400 uppercase rounded-lg text-xs text-white flex items-center justify-center">
-                        Crear Recordatorio
+                    <h6 class="text-lg font-semibold text-slate-700 dark:text-white">Mi Calendario -{{ $veterinario->nombre }}</h6>
+                    <a href="{{ route('citas.create') }}"
+                       class="h-10 px-6 py-2 font-bold text-center bg-gradient-to-tl from-purple-700 to-pink-500 uppercase rounded-lg text-xs text-white flex items-center justify-center">
+                        Crear Cita
                     </a>
-                </div>
-                <!-- Filtros de eventos -->
-                <div class="mt-4 flex flex-wrap gap-6 text-sm">
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="mostrarRecordatorios" checked class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="mostrarRecordatorios" class="text-gray-700 dark:text-white font-medium">Mostrar Recordatorios</label>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="mostrarHistorial" checked class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="mostrarHistorial" class="text-gray-700 dark:text-white font-medium">Mostrar Historial Médico</label>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="mostrarCitas" checked class="w-4 h-4 text-yellow-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="mostrarCitas" class="text-gray-700 dark:text-white font-medium">Mostrar Citas</label>
-                    </div>
                 </div>
                 <!-- Leyenda de colores -->
                 <div class="mt-4 flex flex-wrap gap-4 text-sm">
                     <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-gray-500 rounded"></div>
-                        <span class="text-gray-700 dark:text-white">Recordatorios pendientes</span>
+                        <div class="w-4 h-4 bg-yellow-500 rounded"></div>
+                        <span class="text-gray-700 dark:text-white">Citas pendientes</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 bg-green-500 rounded"></div>
-                        <span class="text-gray-700 dark:text-white">Recordatorios completados</span>
+                        <span class="text-gray-700 dark:text-white">Citas realizadas</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 bg-red-500 rounded"></div>
-                        <span class="text-gray-700 dark:text-white">Recordatorios no completados</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-blue-500 rounded"></div>
-                        <span class="text-gray-700 dark:text-white">Historial médico</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-4 h-4 bg-yellow-500 rounded"></div>
-                        <span class="text-gray-700 dark:text-white">Citas</span>
+                        <span class="text-gray-700 dark:text-white">Citas no completadas</span>
                     </div>
                 </div>
                 <!-- Botón de exportación -->
@@ -142,6 +115,10 @@
             </div>
             <div class="p-4">
                 <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-white">Cliente:</label>
+                    <p id="modalCliente" class="text-sm text-gray-900 dark:text-white"></p>
+                </div>
+                <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 dark:text-white">Mascota:</label>
                     <p id="modalMascota" class="text-sm text-gray-900 dark:text-white"></p>
                 </div>
@@ -156,10 +133,6 @@
                 <div class="mb-4" id="modalTipoContainer" style="display: none;">
                     <label class="block text-sm font-medium text-gray-700 dark:text-white">Tipo:</label>
                     <p id="modalTipo" class="text-sm text-gray-900 dark:text-white"></p>
-                </div>
-                <div class="mb-4" id="modalVeterinarioContainer" style="display: none;">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-white">Veterinario:</label>
-                    <p id="modalVeterinario" class="text-sm text-gray-900 dark:text-white"></p>
                 </div>
                 <div class="flex justify-end space-x-2">
                     <button onclick="cerrarModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-white bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">
@@ -183,19 +156,17 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 // Declarar variables globales para los eventos
-var eventosRecordatorios = [];
-var eventosHistorial = [];
 var eventosCitas = [];
 
-// Función para determinar el estado de un recordatorio/cita basado en fecha y realizado
-function determinarEstadoEvento(fecha, realizado) {
-    const fechaEvento = new Date(fecha);
+// Función para determinar el estado de una cita basado en fecha y realizado
+function determinarEstadoCita(fecha, realizado) {
+    const fechaCita = new Date(fecha);
     const fechaActual = new Date();
     fechaActual.setHours(0, 0, 0, 0); // Resetear a inicio del día
     
     if (realizado) {
         return 'realizado';
-    } else if (fechaEvento < fechaActual) {
+    } else if (fechaCita < fechaActual) {
         return 'no-completado';
     } else {
         return 'pendiente';
@@ -220,9 +191,9 @@ function obtenerClaseCSS(estado) {
 function obtenerTextoEstado(estado) {
     switch(estado) {
         case 'realizado':
-            return 'Completado';
+            return 'Realizada';
         case 'no-completado':
-            return 'No completado';
+            return 'No completada';
         case 'pendiente':
             return 'Pendiente';
         default:
@@ -232,20 +203,7 @@ function obtenerTextoEstado(estado) {
 
 // Función para obtener los eventos actualmente visibles según los filtros
 function obtenerEventosFiltrados() {
-    var mostrarRecordatorios = document.getElementById('mostrarRecordatorios').checked;
-    var mostrarHistorial = document.getElementById('mostrarHistorial').checked;
-    var mostrarCitas = document.getElementById('mostrarCitas').checked;
-    var eventos = [];
-    if (mostrarRecordatorios) {
-        eventos = eventos.concat(eventosRecordatorios);
-    }
-    if (mostrarHistorial) {
-        eventos = eventos.concat(eventosHistorial);
-    }
-    if (mostrarCitas) {
-        eventos = eventos.concat(eventosCitas);
-    }
-    return eventos;
+    return eventosCitas;
 }
 
 // Función para exportar a CSV
@@ -255,45 +213,23 @@ function exportarCSV() {
         alert('No hay datos para exportar.');
         return;
     }
-    var csv = 'Tipo,Título,Mascota,Descripción,Fecha,Estado/Tipo, Veterinario\n';
+    var csv = 'Título,Cliente,Mascota,Descripción,Fecha,Estado\n';
     eventos.forEach(function(ev) {
-        if (ev.extendedProps.tipo === 'recordatorio') {
-            const estado = determinarEstadoEvento(ev.start, ev.extendedProps.realizado);
-            const textoEstado = obtenerTextoEstado(estado);
-            
-            csv += 'Recordatorio,';
-            csv += '"' + ev.title.replace(/"/g, '""') + '"';
-            csv += ',' + '"' + ev.extendedProps.mascota.replace(/"/g, '""') + '"';
-            csv += ',' + '"' + ev.extendedProps.descripcion.replace(/"/g, '""') + '"';
-            csv += ',' + ev.start;
-            csv += ',' + textoEstado;
-            csv += ',' + '';
-        } else if (ev.extendedProps.tipo === 'cita') {
-            const estado = determinarEstadoEvento(ev.start, ev.extendedProps.realizado);
-            const textoEstado = obtenerTextoEstado(estado);
-            
-            csv += 'Cita,';
-            csv += '"' + ev.title.replace(/"/g, '""') + '"';
-            csv += ',' + '"' + ev.extendedProps.mascota.replace(/"/g, '""') + '"';
-            csv += ',' + '"' + ev.extendedProps.descripcion.replace(/"/g, '""') + '"';
-            csv += ',' + ev.start;
-            csv += ',' + textoEstado;
-            csv += ',' + '';
-        } else {
-            csv += 'Historial Médico,';
-            csv += '"' + ev.title.replace(/"/g, '""') + '"';
-            csv += ',' + '"' + ev.extendedProps.mascota.replace(/"/g, '""') + '"';
-            csv += ',' + '"' + ev.extendedProps.descripcion.replace(/"/g, '""') + '"';
-            csv += ',' + ev.start;
-            csv += ',' + ev.extendedProps.tipoHistorial;
-            csv += ',' + '"' + (ev.extendedProps.veterinario ? ev.extendedProps.veterinario.replace(/"/g, '""') : '') + '"';
-        }
+        const estado = determinarEstadoCita(ev.start, ev.extendedProps.realizado);
+        const textoEstado = obtenerTextoEstado(estado);
+        
+        csv += '"' + ev.title.replace(/"/g, '""') + '"';
+        csv += ',' + '"' + ev.extendedProps.cliente.replace(/"/g, '""') + '"';
+        csv += ',' + '"' + ev.extendedProps.mascota.replace(/"/g, '""') + '"';
+        csv += ',' + '"' + ev.extendedProps.descripcion.replace(/"/g, '""') + '"';
+        csv += ',' + ev.start;
+        csv += ',' + textoEstado;
         csv += '\n';
     });
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'eventos_calendario.csv';
+    link.download = 'citas_veterinario.csv';
     link.click();
 }
 
@@ -305,94 +241,31 @@ function exportarExcel() {
         return;
     }
     var data = [
-        ['Tipo', 'Título', 'Mascota', 'Descripción', 'Fecha', 'Estado/Tipo', 'Veterinario']
+        ['Título', 'Cliente', 'Mascota', 'Descripción', 'Fecha', 'Estado']
     ];
     eventos.forEach(function(ev) {
-        if (ev.extendedProps.tipo === 'recordatorio') {
-            const estado = determinarEstadoEvento(ev.start, ev.extendedProps.realizado);
-            const textoEstado = obtenerTextoEstado(estado);
-            
-            data.push([
-                'Recordatorio',
-                ev.title,
-                ev.extendedProps.mascota,
-                ev.extendedProps.descripcion,
-                ev.start,
-                textoEstado,
-                ''
-            ]);
-        } else if (ev.extendedProps.tipo === 'cita') {
-            const estado = determinarEstadoEvento(ev.start, ev.extendedProps.realizado);
-            const textoEstado = obtenerTextoEstado(estado);
-            
-            data.push([
-                'Cita',
-                ev.title,
-                ev.extendedProps.mascota,
-                ev.extendedProps.descripcion,
-                ev.start,
-                textoEstado,
-                ''
-            ]);
-        } else {
-            data.push([
-                'Historial Médico',
-                ev.title,
-                ev.extendedProps.mascota,
-                ev.extendedProps.descripcion,
-                ev.start,
-                ev.extendedProps.tipoHistorial,
-                ev.extendedProps.veterinario || ''
-            ]);
-        }
+        const estado = determinarEstadoCita(ev.start, ev.extendedProps.realizado);
+        const textoEstado = obtenerTextoEstado(estado);
+        
+        data.push([
+            ev.title,
+            ev.extendedProps.cliente,
+            ev.extendedProps.mascota,
+            ev.extendedProps.descripcion,
+            ev.start,
+            textoEstado
+        ]);
     });
     var ws = XLSX.utils.aoa_to_sheet(data);
     var wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Eventos');
-    XLSX.writeFile(wb, 'eventos_calendario.xlsx');
+    XLSX.utils.book_append_sheet(wb, ws, 'Citas');
+    XLSX.writeFile(wb, 'citas_veterinario.xlsx');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
     
     // Variables para almacenar los eventos por tipo
-    eventosRecordatorios = [
-        @foreach($recordatorios as $recordatorio)
-        {
-            id: 'recordatorio_{{ $recordatorio->id }}',
-            title: '{{ $recordatorio->titulo }}',
-            start: '{{ $recordatorio->fecha->format('Y-m-d') }}',
-            className: '{{ $recordatorio->realizado ? 'fc-event-realizado' : ($recordatorio->fecha->isPast() ? 'fc-event-no-completado' : 'fc-event-pendiente') }}',
-            extendedProps: {
-                tipo: 'recordatorio',
-                mascota: '{{ $recordatorio->mascota->nombre }}',
-                descripcion: '{{ $recordatorio->descripcion ?? 'Sin descripción' }}',
-                realizado: {{ $recordatorio->realizado ? 'true' : 'false' }},
-                editUrl: '{{ route('recordatorios.edit', $recordatorio) }}'
-            }
-        },
-        @endforeach
-    ];
-    
-    eventosHistorial = [
-        @foreach($historialMedico as $historial)
-        {
-            id: 'historial_{{ $historial->id }}',
-            title: '{{ $historial->tipo }} - {{ $historial->mascota->nombre }}',
-            start: '{{ $historial->fecha->format('Y-m-d') }}',
-            className: 'fc-event-historial',
-            extendedProps: {
-                tipo: 'historial',
-                mascota: '{{ $historial->mascota->nombre }}',
-                descripcion: '{{ $historial->descripcion ?? 'Sin descripción' }}',
-                tipoHistorial: '{{ $historial->tipo }}',
-                veterinario: '{{ $historial->veterinario ?? 'No especificado' }}',
-                editUrl: '{{ $historial->mascota ? route('mascotas.historial.edit', [$historial->mascota, $historial->hashid]) : '' }}'
-            }
-        },
-        @endforeach
-    ];
-    
     eventosCitas = [
         @foreach($citas as $cita)
         {
@@ -402,10 +275,11 @@ document.addEventListener('DOMContentLoaded', function() {
             className: '{{ $cita->realizado ? 'fc-event-realizado' : ($cita->fecha->isPast() ? 'fc-event-no-completado' : 'fc-event-cita') }}',
             extendedProps: {
                 tipo: 'cita',
+                cliente: '{{ $cita->mascota->usuario->name }}',
                 mascota: '{{ $cita->mascota->nombre }}',
                 descripcion: '{{ $cita->descripcion ?? 'Sin descripción' }}',
                 realizado: {{ $cita->realizado ? 'true' : 'false' }},
-                editUrl: '{{ route('recordatorios.edit', $cita) }}'
+                editUrl: '{{ route('citas.edit', $cita->hashid) }}'
             }
         },
         @endforeach
@@ -425,62 +299,27 @@ document.addEventListener('DOMContentLoaded', function() {
             week: 'Semana',
             list: 'Lista'
         },
-        events: [...eventosRecordatorios, ...eventosHistorial, ...eventosCitas],
+        events: eventosCitas,
         eventClick: function(info) {
             mostrarModal(info.event);
         },
         eventDidMount: function(info) {
             // Agregar tooltip con información adicional
-            if (info.event.extendedProps.tipo === 'recordatorio') {
-                info.el.title = `${info.event.title} - ${info.event.extendedProps.mascota} (Recordatorio)`;
-            } else if (info.event.extendedProps.tipo === 'cita') {
-                info.el.title = `${info.event.title} - ${info.event.extendedProps.mascota} (Cita)`;
-            } else {
-                info.el.title = `${info.event.title} - ${info.event.extendedProps.mascota} (Historial Médico)`;
-            }
+            info.el.title = `${info.event.title} - ${info.event.extendedProps.cliente} (Cita)`;
         }
     });
     
     calendar.render();
-    
-    // Funciones para filtrar eventos
-    function actualizarEventos() {
-        var mostrarRecordatorios = document.getElementById('mostrarRecordatorios').checked;
-        var mostrarHistorial = document.getElementById('mostrarHistorial').checked;
-        var mostrarCitas = document.getElementById('mostrarCitas').checked;
-        
-        // Remover todos los eventos
-        calendar.removeAllEvents();
-        
-        // Agregar eventos según los filtros
-        if (mostrarRecordatorios) {
-            calendar.addEventSource(eventosRecordatorios);
-        }
-        if (mostrarHistorial) {
-            calendar.addEventSource(eventosHistorial);
-        }
-        if (mostrarCitas) {
-            calendar.addEventSource(eventosCitas);
-        }
-    }
-    
-    // Event listeners para los filtros
-    document.getElementById('mostrarRecordatorios').addEventListener('change', actualizarEventos);
-    document.getElementById('mostrarHistorial').addEventListener('change', actualizarEventos);
-    document.getElementById('mostrarCitas').addEventListener('change', actualizarEventos);
 });
 
 function mostrarModal(event) {
     const modal = document.getElementById('eventoModal');
     const title = document.getElementById('modalTitle');
+    const cliente = document.getElementById('modalCliente');
     const mascota = document.getElementById('modalMascota');
     const descripcion = document.getElementById('modalDescripcion');
     const estado = document.getElementById('modalEstado');
     const estadoContainer = document.getElementById('modalEstadoContainer');
-    const tipoContainer = document.getElementById('modalTipoContainer');
-    const tipo = document.getElementById('modalTipo');
-    const veterinarioContainer = document.getElementById('modalVeterinarioContainer');
-    const veterinario = document.getElementById('modalVeterinario');
     const editLink = document.getElementById('modalEditar');
     const cambiarEstadoBtn = document.getElementById('cambiarEstadoBtn');
     
@@ -488,53 +327,42 @@ function mostrarModal(event) {
     currentEvent = event;
     
     title.textContent = event.title;
+    cliente.textContent = event.extendedProps.cliente;
     mascota.textContent = event.extendedProps.mascota;
     descripcion.textContent = event.extendedProps.descripcion;
     
-    if (event.extendedProps.tipo === 'historial') {
-        // Mostrar información de historial médico
-        estadoContainer.style.display = 'none';
-        tipoContainer.style.display = 'block';
-        veterinarioContainer.style.display = 'block';
-        tipo.textContent = event.extendedProps.tipoHistorial;
-        veterinario.textContent = event.extendedProps.veterinario;
-        cambiarEstadoBtn.style.display = 'none'; // Ocultar botón de cambiar estado para historial
-    } else {
-        // Mostrar información de recordatorio/cita
-        estadoContainer.style.display = 'block';
-        tipoContainer.style.display = 'none';
-        veterinarioContainer.style.display = 'none';
-        
-        const estadoEvento = determinarEstadoEvento(event.start, event.extendedProps.realizado);
-        const textoEstado = obtenerTextoEstado(estadoEvento);
-        
-        estado.textContent = textoEstado;
-        
-        // Aplicar color según el estado
-        switch(estadoEvento) {
-            case 'realizado':
-                estado.className = 'text-sm font-semibold text-green-600';
-                break;
-            case 'no-completado':
-                estado.className = 'text-sm font-semibold text-red-600';
-                break;
-            case 'pendiente':
-                estado.className = 'text-sm font-semibold text-gray-600';
-                break;
-            default:
-                estado.className = 'text-sm font-semibold text-gray-600';
-        }
-        
-        // Mostrar botón de cambiar estado solo si es un recordatorio o cita
-        if (event.extendedProps.tipo === 'recordatorio' || event.extendedProps.tipo === 'cita') {
-            cambiarEstadoBtn.style.display = 'inline-block';
-            cambiarEstadoBtn.textContent = event.extendedProps.realizado ? 'Marcar como Pendiente' : 'Marcar como Completado';
-        } else {
-            cambiarEstadoBtn.style.display = 'none';
-        }
+    // Mostrar información de cita
+    estadoContainer.style.display = 'block';
+    
+    const estadoCita = determinarEstadoCita(event.start, event.extendedProps.realizado);
+    const textoEstado = obtenerTextoEstado(estadoCita);
+    
+    estado.textContent = textoEstado;
+    
+    // Aplicar color según el estado
+    switch(estadoCita) {
+        case 'realizado':
+            estado.className = 'text-sm font-semibold text-green-600';
+            break;
+        case 'no-completado':
+            estado.className = 'text-sm font-semibold text-red-600';
+            break;
+        case 'pendiente':
+            estado.className = 'text-sm font-semibold text-gray-600';
+            break;
+        default:
+            estado.className = 'text-sm font-semibold text-gray-600';
     }
     
     editLink.href = event.extendedProps.editUrl;
+    
+    // Mostrar botón de cambiar estado solo para citas
+    if (event.extendedProps.tipo === 'cita') {
+        cambiarEstadoBtn.style.display = 'inline-block';
+        cambiarEstadoBtn.textContent = event.extendedProps.realizado ? 'Marcar como Pendiente' : 'Marcar como Realizada';
+    } else {
+        cambiarEstadoBtn.style.display = 'none';
+    }
     
     modal.classList.remove('hidden');
 }
@@ -544,7 +372,7 @@ function cerrarModal() {
     modal.classList.add('hidden');
 }
 
-// Función para cambiar el estado de un recordatorio o cita
+// Función para cambiar el estado de una cita
 function cambiarEstado() {
     // Extraer el hashid de la URL de edición (formato: /recordatorios/{hashid}/edit)
     const editUrl = currentEvent.extendedProps.editUrl;

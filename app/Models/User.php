@@ -66,6 +66,11 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasManyThrough(Recordatorio::class, Mascota::class);
     }
+
+    public function veterinarios()
+    {
+        return $this->belongsToMany(Veterinario::class, 'veterinario_user');
+    }
     public function getRouteKey()
     {
         return Hashids::encode($this->getKey());

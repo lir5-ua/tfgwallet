@@ -20,6 +20,21 @@ class Veterinario extends Authenticatable
         'password',
     ];
 
+    public function usuarios()
+    {
+        return $this->belongsToMany(User::class, 'veterinario_user');
+    }
+
+    public function recordatorios()
+    {
+        return $this->hasManyThrough(Recordatorio::class, AccesoMascota::class, 'veterinario_id', 'mascota_id', 'id', 'mascota_id');
+    }
+
+    public function accesosMascotas()
+    {
+        return $this->hasMany(AccesoMascota::class);
+    }
+
     public function getRouteKey()
     {
         return Hashids::encode($this->getKey());

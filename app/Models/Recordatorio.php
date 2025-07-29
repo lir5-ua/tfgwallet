@@ -12,12 +12,14 @@ class Recordatorio extends Model
     protected $dates = ['fecha'];
     protected $casts = [
         'fecha' => 'date',
+        'es_cita' => 'boolean',
     ];
     protected $fillable = [
         'titulo',
         'fecha',
         'descripcion',
         'realizado',
+        'es_cita',
         'mascota_id', // opcional, por si lo usas de forma directa alguna vez
     ];
     public function mascota()

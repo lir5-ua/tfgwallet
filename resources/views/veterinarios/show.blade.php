@@ -62,6 +62,13 @@
                                 <strong class="text-slate-700">Fecha de alta:</strong> &nbsp;{{ $veterinario->created_at->format('d/m/Y') }}
                             </li>
                         </ul>
+                        
+                        <div class="mt-6">
+                            <a href="{{ route('citas.create') }}" class="btn btn-primary w-full">
+                                <i class="fas fa-calendar-plus me-2"></i>
+                                Crear Nueva Cita
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
